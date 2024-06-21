@@ -1,0 +1,38 @@
+#!/bin/bash
+#SBATCH --job-name=scot_fit
+#SBATCH --output=output_%j.txt       # Output file name with Job ID
+#SBATCH --error=error_%j.txt         # Error file name with Job ID
+#SBATCH --mail-type=BEGIN,END
+#SBATCH --mail-user=m.daghlian@umcg.nl
+#SBATCH --time=0:01:00
+#SBATCH --partition=regular
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=64
+#SBATCH --profile=task
+
+script_path=/home4/p307263/programs/scot_habrok/scot_habrok/s0_analysis_steps
+# Parse command-line arguments
+while [[ "$#" -gt 0 ]]; do
+    case $1 in
+        --args) ARGUMENT_STRING="$2"; shift ;;
+        *) echo "Unknown parameter passed: $1"; exit 1 ;;
+    esac
+    shift
+done
+
+# Now load the correct modules
+module purge
+module load matplotlib
+module load PyYAML
+
+# THEN activate your specific environment
+echo "Activating virtual environment: $HOME/venvs/dag_prfpy/bin/activate"
+source $HOME/venvs/dag_prfpy/bin/activate
+
+# Check which Python is being used
+echo "Using Python executable: $(which python)"
+python -c "import sys; print('Python version:', sys.version)"
+
+# Your script command
+echo "Running main script"
+python $script_path/HAB_G_fit.py $ARGUMENT_STRING

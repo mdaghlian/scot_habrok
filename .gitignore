@@ -1,0 +1,14 @@
+*__pycache__
+*.egg-info
+/z_untracked/*
+/build/*
+/.vscode/*
+/reports/html_files/*
+/plot_notebooks/sub*
+s0_test.ipynb
+*/z_/*
+RSQ*.txt
+*.nfs*
+reports
+/z_sim_images
+z_*

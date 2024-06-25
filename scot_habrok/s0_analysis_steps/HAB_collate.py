@@ -92,23 +92,45 @@ Example:
     output_dir = opj(prf_dir, sub, ses)
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)    
-    out = f"{sub}_{model}_{roi_fit}_{task}-fits"    
-
-    for ib in np.arange(batch_num):
-        ib_file = dag_find_file_in_folder(
-            [sub, model, task, roi_fit, 'iter', constraints, '.pkl', 
-            f'batch-{ib}-of-{batch_num}'],  # f'batch-{i:02}-of-{batch_num:03}'
-            output_dir, 
+    out = f"{sub}_{model}_{roi_fit}_{task}-fits_COLLATED"    
+    
+    batch_idx = []
+    batch_pars = []
+    for ib in np.arange(1,batch_num+1):
+        # Find the pickle file
+        batch_pkl_file = dag_find_file_in_folder(
+            [sub, model, task, roi_fit, 'iter', constraints, '.pkl', f'batch-{ib:03}-of-{batch_num:03}'],  output_dir, 
             return_msg=None, 
-            )  
-        ib_new_file = ib_file.replace(
-            f'batch-{ib}-of-{batch_num}',
-            f'batch-{ib+1:03}-of-{batch_num:03}',
+            )
+        if ib==1:
+            # LOAD ALL THE SETTINGS + PARS... we will put them in later
+            pkl_file = open(batch_pkl_file,'rb')
+            pkl_data = pickle.load(pkl_file)
+            pkl_file.close()     
+        batch_pars.append(
+            load_prf_pickle_pars(batch_pkl_file)
         )
-        # os.system(f'mv {ib_file} {ib_new_file}')
-        os.system(f'rm {ib_file}')
-        # print(ib_new_file)        
-
+        
+        # Also load the index            
+        batch_idx_file = dag_find_file_in_folder(
+            [sub, model, task, roi_fit, 'batch-idx.npy', f'batch-{ib:03}-of-{batch_num:03}'],  output_dir, 
+            return_msg=None, 
+            )
+        batch_idx.append(np.load(batch_idx_file))
+    
+    # Find the total number of voxels and params
+    total_n_params = batch_pars[0].shape[-1]
+    total_n_vox = np.concatenate(batch_idx).max() + 1 # (index)
+    print(f'total n_vox = {total_n_vox}')
+    pkl_data['pars'] = np.zeros((total_n_vox, total_n_params))
+    for idx,pars in zip(batch_idx, batch_pars):
+        pkl_data['pars'][idx,:] = pars
+    iter_pkl_file = opj(output_dir, f'{out}_stage-iter_constr-{constraints}_desc-prf_params.pkl')
+    print(f'saving ...{iter_pkl_file}')
+    # Dump everything!!! into pickle
+    f = open(iter_pkl_file, "wb")
+    pickle.dump(pkl_data, f)
+    f.close()
     return
 
 

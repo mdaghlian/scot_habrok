@@ -4,10 +4,10 @@
 #SBATCH --error=error_%j.txt         # Error file name with Job ID
 #SBATCH --mail-type=BEGIN,END
 #SBATCH --mail-user=m.daghlian@umcg.nl
-#SBATCH --time=0:20:00
+#SBATCH --time=0:50:00
 #SBATCH --partition=regular
 #SBATCH --nodes=1
-#SBATCH --ntasks-per-node=16
+#SBATCH --ntasks-per-node=30
 #SBATCH --profile=task
 
 

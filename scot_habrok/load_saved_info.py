@@ -91,6 +91,12 @@ def load_prf_pickle_pars(prf_file):
     pkl_pars = pkl_data['pars']
     return pkl_pars
 
+def load_prf_pickle_settings(prf_file):
+    pkl_file = open(prf_file,'rb')
+    pkl_data = pickle.load(pkl_file)
+    pkl_file.close()     
+    pkl_settings = pkl_data['settings']
+    return pkl_settings
 
 
 def get_design_matrix_npy(task_list):

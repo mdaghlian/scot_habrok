@@ -12,3 +12,5 @@ RSQ*.txt
 reports
 /z_sim_images
 z_*
+error*.txt
+output*.txt

@@ -14,7 +14,7 @@ sub_list = ['sub-01']
 task_list = ['AS0']
 batch_num = 16
 roi_fit = 'all'
-constraint = '--bgfs'
+constraint = '--tc'
 ses = 'ses-1'
 # ************ LOOP THROUGH SUBJECTS ***************
 for sub in sub_list:

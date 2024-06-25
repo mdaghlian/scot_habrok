@@ -117,7 +117,7 @@ Example:
     
 
     if batch_num is not None:        
-        batch_str = f'_batch-{batch_id:02}-of-{batch_num:03}'
+        batch_str = f'_batch-{batch_id:03}-of-{batch_num:03}'
         if batch_id==batch_num:
             last_batch = True
         else:
@@ -169,9 +169,13 @@ Example:
     if batch_num is not None:
         ts_data, ts_idx = dag_split_mat_with_idx(
             ts_data, batch_num=batch_num, batch_id=batch_id-1, # NOTE MINUS 1
+            split_method='distributed',
         )
         print(f'ts shape = {ts_data.shape}')
         print(ts_idx)
+        # save  
+        batch_idx_file = opj(output_dir, f'{out}_batch-idx.npy')
+        np.save(batch_idx_file, ts_idx)
     else:
         ts_idx = np.ones(ts_data.shape[0])
     num_vx = ts_data.shape[0]
@@ -280,7 +284,6 @@ Example:
         f = open(grid_pkl_file, "wb")
         pickle.dump(grid_dict, f)
         f.close()
-
     else:
         print('Loading old grid parameters')
         g_params = load_prf_pickle_pars(grid_gauss)
@@ -302,9 +305,10 @@ Example:
     # ************************************************************************
     
     # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< DO ITERATIVE FIT
-    iter_check = dag_find_file_in_folder([out, 'gauss', 'iter', constraints], output_dir, return_msg=None)
+    print([out, 'gauss', 'iter', constraints])
+    iter_check = dag_find_file_in_folder([out, 'gauss', 'iter', dag_hyphen_parse('constr', constraints)], output_dir, return_msg=None)
     if (iter_check is not None) and (not overwrite):
-        print('Already done {iter_check}')
+        print(f'Already done {iter_check}')
         sys.exit()        
 
     gauss_bounds = [

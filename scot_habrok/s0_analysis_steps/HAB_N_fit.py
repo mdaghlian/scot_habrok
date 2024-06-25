@@ -356,7 +356,7 @@ Example:
         # Put them in the correct format to save
         grid_pkl_file = opj(output_dir, f'{out}_stage-grid_desc-prf_params.pkl')
         grid_dict = {}
-        grid_dict['pars'] = gf.gridsearch_params
+        grid_dict['pars'] = gf_ext.gridsearch_params
         grid_dict['settings'] = prf_settings
         grid_dict['start_time'] = g_start_time
         grid_dict['end_time'] = g_end_time

@@ -99,9 +99,10 @@ Example:
     for ib in np.arange(1,batch_num+1):
         # Find the pickle file
         batch_pkl_file = dag_find_file_in_folder(
-            [sub, model, task, roi_fit, 'iter', constraints, '.pkl', f'batch-{ib:03}-of-{batch_num:03}'],  output_dir, 
+            [sub, model, task, roi_fit, 'iter', f'constr-{constraints}', '.pkl', f'batch-{ib:03}-of-{batch_num:03}'],  output_dir, 
             return_msg=None, 
             )
+        print(batch_pkl_file.split('/')[-1])
         if ib==1:
             # LOAD ALL THE SETTINGS + PARS... we will put them in later
             pkl_file = open(batch_pkl_file,'rb')
@@ -117,7 +118,7 @@ Example:
             return_msg=None, 
             )
         batch_idx.append(np.load(batch_idx_file))
-    
+
     # Find the total number of voxels and params
     total_n_params = batch_pars[0].shape[-1]
     total_n_vox = np.concatenate(batch_idx).max() + 1 # (index)

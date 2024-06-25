@@ -25,7 +25,7 @@ for sub in sub_list:
         prf_job_name = f'{sub}grid{task}'            
         job="bash"
         job="sbatch"
-        script_path = opj(os.path.dirname(__file__),'s1_ASX_G_SUBMIT_SLURM')        
+        script_path = opj(os.path.dirname(__file__),'s1ai_ASX_G_SUBMIT_SLURM')        
         # Arguments to pass to HAB_G_fit.py
         script_args = f"--sub {sub} --task {task} --roi_fit {roi_fit} --nr_jobs {nr_jobs} {constraint} --prf_out {prf_out} --grid_only"
         os.system(f'{job} {script_path} --job-name {prf_job_name} --output-dir {this_dir} --args "{script_args}"')

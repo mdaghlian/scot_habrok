@@ -12,14 +12,14 @@ except:
 
 from dag_prf_utils.utils import *
 from dag_prf_utils.prfpy_functions import set_tc_shape
-derivatives_dir = '/scratch/p307263/pilot1/derivatives/prf_habrok'
+derivatives_dir = '/scratch/p307263/pilot1/derivatives/'
 code_dir = '/home4/p307263/programs/scot_habrok/scot_habrok'
 default_ses = 'ses-1'
 
 def load_yml_settings():    
-    # yml_path = os.path.abspath(opj(code_dir, 's0_analysis_steps/s0_prf_analysis.yml'))
+    yml_path = os.path.abspath(opj(code_dir, 's0_analysis_steps/s0_prf_analysis.yml'))
     # print(yml_path)
-    yml_path = 'scot_habrok/s0_analysis_steps/s0_prf_analysis.yml'
+    # yml_path = 'scot_habrok/s0_analysis_steps/s0_prf_analysis.yml'
     with open(yml_path) as f:
         prf_settings = yaml.full_load(f)    
     return prf_settings

@@ -12,7 +12,7 @@ prf_dir = opj(derivatives_dir, prf_out)
 
 sub_list = ['sub-01']
 task_list = ['AS0']
-batch_num = 16
+batch_num = 20
 roi_fit = 'all'
 constraint = '--tc'
 ses = 'ses-1'

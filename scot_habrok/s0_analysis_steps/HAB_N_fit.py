@@ -3,7 +3,6 @@
 #$ -cwd
 #$ -V
 
-
 import sys
 import os
 opj = os.path.join
@@ -13,15 +12,19 @@ import pickle
 from datetime import datetime, timedelta
 import time
 
-from prfpy.stimulus import PRFStimulus2D
-from prfpy.model import Iso2DGaussianModel, DoG_Iso2DGaussianModel, CSS_Iso2DGaussianModel, Norm_Iso2DGaussianModel
-from prfpy.fit import Iso2DGaussianFitter, DoG_Iso2DGaussianFitter, CSS_Iso2DGaussianFitter,Norm_Iso2DGaussianFitter
-
-from pfa_scripts.load_saved_info import get_design_matrix_npy, load_data_tc, load_params_generic,get_roi, get_number_of_vx, get_yml_settings_path
+try:
+    from prfpy.stimulus import PRFStimulus2D
+    from prfpy.model import Iso2DGaussianModel,Norm_Iso2DGaussianModel, DoG_Iso2DGaussianModel, CSS_Iso2DGaussianModel
+    from prfpy.fit import Iso2DGaussianFitter,Norm_Iso2DGaussianFitter, DoG_Iso2DGaussianFitter, CSS_Iso2DGaussianFitter
+except:
+    from prfpy_csenf.stimulus import PRFStimulus2D
+    from prfpy_csenf.model import Iso2DGaussianModel,Norm_Iso2DGaussianModel, DoG_Iso2DGaussianModel, CSS_Iso2DGaussianModel
+    from prfpy_csenf.fit import Iso2DGaussianFitter,Norm_Iso2DGaussianFitter, DoG_Iso2DGaussianFitter, CSS_Iso2DGaussianFitter
 
 from dag_prf_utils.utils import *
 from dag_prf_utils.prfpy_functions import *
 
+from scot_habrok.load_saved_info import *
 
 def main(argv):
 
@@ -34,19 +37,21 @@ Args:
     -s (--sub=)         e.g., 01
     -m (--model=)       e.g., norm, css, dog
     -t (--task=)        e.g., AS0, AS1, AS2
-    -r (--roi_fit=)     e.g., all, V1_exvivo
+    --batch_id          id giving the batch to run
+    --batch_num         how many batches in total
+    --grid_only         only run the grid
     --nr_jobs           number of jobs
     --verbose
     --tc                
     --bgfs
-    --ow               overwrite
+    --ow               overwrite    
+
 
 Example:
 
 
 ---------------------------------------------------------------------------------------------------
     """
-    derivatives_dir = '/data1/projects/dumoulinlab/Lab_members/Marcus/projects/pilot1/derivatives'    
     print('\n\n\n\n')
 
     # default
@@ -60,15 +65,16 @@ Example:
     # Specify
     sub = None
     task = None
-    roi_fit = None
+    roi_fit = 'all'
     constraints = None
     nr_jobs = None
     prf_out = 'prf'    
-    ignore_mask = False
     overwrite = False
     rsq_threshold = None
-    yml_name = 's0_prf_analysis.yml'
     ow_prf_settings = {} # overwrite prf settings from the yml file with these settings
+    batch_id = None
+    batch_num = None
+    grid_only = False
     for i,arg in enumerate(argv):
         if arg in ('-s', '--sub'):
             sub = dag_hyphen_parse('sub', argv[i+1])
@@ -76,10 +82,14 @@ Example:
             ses = dag_hyphen_parse('ses', argv[i+1])            
         elif arg in ('-t', '--task'):
             task = dag_hyphen_parse('task', argv[i+1])
-        elif arg in ("-m", "--model"):
-            model = argv[i+1]            
+        elif arg in ('-m', '--model'):
+            model = argv[i+1]
         elif '--prf_out' in arg:
-            prf_out = argv[i+1]                
+            prf_out = argv[i+1]   
+        elif '--batch_id' in arg:
+            batch_id = int(argv[i+1])
+        elif '--batch_num' in arg:
+            batch_num = int(argv[i+1])            
         elif arg in ("-r", "--roi_fit"):
             roi_fit = argv[i+1]
         elif arg in ("--nr_jobs"):
@@ -88,43 +98,44 @@ Example:
             constraints = "tc"
         elif arg in ("--bgfs"):
             constraints = "bgfs"
-        elif arg in ("--ignore_mask"):
-            ignore_mask = True
-            zero_pad = True
         elif arg in ("--rsq_threshold"):
             rsq_threshold = float(argv[i+1])                        
-        elif arg in ("--yml_name"):
-            yml_name = argv[i+1]            
+        elif arg in ("--grid_only"):
+            grid_only = True
         elif arg in ("--ow" or "--overwrite"):
             overwrite = True
         elif arg in ('-h', '--help'):
             print(main.__doc__)
             sys.exit(2)
         elif '--' in arg:
-            ow_prf_settings[arg.split('--')[-1]] = dag_arg_checker(argv[i+1])    
-
-
+            ow_prf_settings[arg.split('--')[-1]] = dag_arg_checker(argv[i+1])  
+    
     # Where to save everything
     prf_dir = opj(derivatives_dir, prf_out)    
     output_dir = opj(prf_dir, sub, ses)
     if not os.path.exists(output_dir):
         os.makedirs(output_dir) 
-
-    out = f"{sub}_{dag_hyphen_parse('model', model)}_{dag_hyphen_parse('roi', roi_fit)}_{task}-fits"
+    if batch_num is not None:        
+        batch_str = f'_batch-{batch_id:03}-of-{batch_num:03}'
+        if batch_id==batch_num:
+            last_batch = True
+        else:
+            last_batch = False
+    else:
+        batch_str = ''
+    out = f"{sub}_{dag_hyphen_parse('model', model)}_{dag_hyphen_parse('roi', roi_fit)}_{task}-fits{batch_str}"    
+    out_no_batch_str = f"{sub}_{dag_hyphen_parse('model', model)}_{dag_hyphen_parse('roi', roi_fit)}_{task}-fits"    
 
     # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< LOAD SETTINGS
     # load basic settings from the yml file
-    prf_settings_file = get_yml_settings_path(yml_name)
-    print(prf_settings_file)
-    with open(prf_settings_file) as f:
-        prf_settings = yaml.safe_load(f)
+    prf_settings = load_yml_settings()
     dm_task = task +''
     dm_task = dm_task.split('_run')[0] # 
     dm_task = dm_task.split('_fold')[0] 
     # Add important info to settings
     prf_settings['sub'] = sub
-    prf_settings['model'] = model
     prf_settings['task'] = task
+    prf_settings['model'] = model
     prf_settings['roi_fit'] = roi_fit
     prf_settings['nr_jobs'] = nr_jobs
     prf_settings['constraints'] = constraints
@@ -132,13 +143,12 @@ Example:
     prf_settings['task'] = task
     prf_settings['fit_hrf'] = fit_hrf
     prf_settings['verbose'] = verbose
-    prf_settings['prf_out'] = out
+    prf_settings['prf_out'] = out 
     prf_settings['prf_dir'] = prf_dir
-    prf_settings['ignore_mask'] = ignore_mask
     prf_settings['cut_vols'] = cut_vols
-    prf_settings['n_timepts'] = n_timepts        
+    prf_settings['n_timepts'] = n_timepts    
     if rsq_threshold!=None:        
-        prf_settings['rsq_threshold'] = rsq_threshold   
+        prf_settings['rsq_threshold'] = rsq_threshold
     if len(ow_prf_settings)>0:
         for key in ow_prf_settings.keys():
             prf_settings[key] = ow_prf_settings[key]
@@ -147,31 +157,38 @@ Example:
     # ****************************************************
 
     # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< LOAD TIME SERIES & MASK THE ROI   
-    num_vx = get_number_of_vx(sub=sub)
-    print(prf_dir)
-
-    m_prf_tc_data = load_data_tc(
-        sub=sub, ses=ses, task_list=task, look_in=prf_dir, n_timepts=n_timepts)[task]
-    roi_mask = get_roi(sub=sub, label=roi_fit)
-    # Are we limiting the fits to an roi?
-    num_vx_in_roi = roi_mask.sum()
-    print(roi_mask.shape)
-    print(f'Fitting {roi_fit} {num_vx_in_roi} voxels out of {num_vx} voxels in total')
-    print('Removing irrelevant times courses')
-    print('These will be added in later, as zero fits in the parameters')
-    zero_pad = False
-    print(m_prf_tc_data.shape)
+    # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< LOAD TIME SERIES
+    ts_data = load_data_tc(
+        sub=sub, 
+        ses=ses, 
+        task_list=task, 
+        look_in=prf_dir, 
+        n_timepts=n_timepts
+        )[task]
+    
+    # Split into batches?
+    if batch_num is not None:
+        ts_data, ts_idx = dag_split_mat_with_idx(
+            ts_data, batch_num=batch_num, batch_id=batch_id-1, # NOTE MINUS 1
+            split_method='distributed',
+        )
+        print(f'ts shape = {ts_data.shape}')
+        print(ts_idx)
+        # save  
+        batch_idx_file = opj(output_dir, f'{out}_batch-idx.npy')
+        np.save(batch_idx_file, ts_idx)
+    else:
+        ts_idx = np.ones(ts_data.shape[0])
+    num_vx = ts_data.shape[0]
+    print(f'Fitting {roi_fit} batch {batch_id} out of {batch_num} num voxels = {num_vx} in total')
     print(f'RSQ THRESHOLD {prf_settings["rsq_threshold"]}')
-    if not ignore_mask:        
-        m_prf_tc_data = mask_time_series(ts=m_prf_tc_data, mask=roi_mask, zero_pad=zero_pad, )
-
     # ************************************************************************
 
 
     # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<   LOAD DESIGN MATRIX   
     design_matrix = get_design_matrix_npy([dm_task])[dm_task]         
     design_matrix = design_matrix[:,:,cut_vols:]
-    assert design_matrix.shape[-1]==m_prf_tc_data.shape[-1]
+    assert design_matrix.shape[-1]==ts_data.shape[-1]
     prf_stim = PRFStimulus2D(
         screen_size_cm=prf_settings['screen_size_cm'],          # Distance of screen to eye
         screen_distance_cm=prf_settings['screen_distance_cm'],  # height of the screen (i.e., the diameter of the stimulated region)
@@ -189,23 +206,19 @@ Example:
         normalize_RFs=prf_settings['normalize_RFs'],        # Normalize the volume of the RF (so that RFs w/ different sizes have the same volume. Generally not needed, as this can be solved using the beta values i.e.,amplitude)
         )
     gf = Iso2DGaussianFitter(
-        data=m_prf_tc_data,             # time series
+        data=ts_data,             # time series
         model=gg,                       # model (see above)
         n_jobs=prf_settings['nr_jobs'], # number of jobs to use in parallelization 
         )
-    iter_gauss = dag_find_file_in_folder([sub, 'gauss', roi_fit, 'iter', task, constraints], output_dir, return_msg=None)        
+    iter_gauss = dag_find_file_in_folder([sub, 'gauss', roi_fit, 'iter', task, f'constr-{constraints}', '.pkl'], output_dir, exclude='batch', return_msg=None)        
     if iter_gauss is None:
         # -> gauss is faster than the extended, so we may have the 'all' fit already...
         # -> check for this and use it if appropriate (make sure the correct constraints are applied)
         # iter_gauss = dag_find_file_in_folder([sub, 'gauss', 'all', 'iter', task, constraints], output_dir, return_msg=None)        
-        iter_gauss = dag_find_file_in_folder([sub, 'gauss', 'all', 'iter', task, 'bgfs'], output_dir, return_msg=None)        
+        iter_gauss = dag_find_file_in_folder([sub, 'gauss', 'all', 'iter', task, f'constr-{constraints}', '.pkl'], output_dir, exclude='batch', return_msg=None)        
         print('**** USING ALL *****')
-
-    iter_gauss_params = load_params_generic(iter_gauss)
-    # Apply the same mask to the gaussian parameters
-    if not zero_pad:
-        iter_gauss_params = iter_gauss_params[roi_mask,:]
-
+    print(iter_gauss)
+    iter_gauss_params = load_prf_pickle_pars(iter_gauss)
     gf.iterative_search_params = iter_gauss_params
     gf.rsq_mask = iter_gauss_params[:,-1] > prf_settings['rsq_threshold']
     # CREATE GAUSSIAN MODEL<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
@@ -220,7 +233,7 @@ Example:
             normalize_RFs=prf_settings['normalize_RFs'],        
             )
         gf_ext = Norm_Iso2DGaussianFitter(
-            data=m_prf_tc_data,           
+            data=ts_data,           
             model=gg_ext,                  
             n_jobs=prf_settings['nr_jobs'],
             previous_gaussian_fitter = gf,
@@ -250,7 +263,7 @@ Example:
             normalize_RFs=prf_settings['normalize_RFs'],        
             )
         gf_ext = DoG_Iso2DGaussianFitter(
-            data=m_prf_tc_data,           
+            data=ts_data,           
             model=gg_ext,                  
             n_jobs=prf_settings['nr_jobs'],
             previous_gaussian_fitter = gf,
@@ -276,7 +289,7 @@ Example:
             normalize_RFs=prf_settings['normalize_RFs'],        
             )
         gf_ext = CSS_Iso2DGaussianFitter(
-            data=m_prf_tc_data,           
+            data=ts_data,           
             model=gg_ext,                  
             n_jobs=prf_settings['nr_jobs'],
             previous_gaussian_fitter = gf,
@@ -315,7 +328,7 @@ Example:
 
     
     # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< IF NOT DONE - DO GRID FIT
-    grid_ext = dag_find_file_in_folder([out, model, 'grid'], output_dir, return_msg=None)
+    grid_ext = dag_find_file_in_folder([sub, model, task, roi_fit, 'grid'], output_dir, return_msg=None, exclude=['batch'])            
     if grid_ext is None:
         print('Not done grid fit - doing that now')
         g_start_time = datetime.now().strftime('%Y-%m-%d_%H-%M')
@@ -342,12 +355,8 @@ Example:
         # Save everything as a pickle...
         # Put them in the correct format to save
         grid_pkl_file = opj(output_dir, f'{out}_stage-grid_desc-prf_params.pkl')
-        if (zero_pad) or (ignore_mask):
-            grid_pars_to_save = gf_ext.gridsearch_params
-        else:
-            grid_pars_to_save = process_prfpy_out(gf_ext.gridsearch_params, roi_mask)         
         grid_dict = {}
-        grid_dict['pars'] = grid_pars_to_save
+        grid_dict['pars'] = gf.gridsearch_params
         grid_dict['settings'] = prf_settings
         grid_dict['start_time'] = g_start_time
         grid_dict['end_time'] = g_end_time
@@ -357,23 +366,27 @@ Example:
 
     else:
         print('Loading old grid parameters')
-        g_params = load_params_generic(grid_ext)
-        # Apply the mask 
-        if (not zero_pad) and (not ignore_mask):
-            g_params = g_params[roi_mask,:]
-        gf_ext.gridsearch_params = g_params        
+        g_params = load_prf_pickle_pars(grid_ext)
+        if batch_id is not None:
+            gf_ext.gridsearch_params = g_params[ts_idx,:]        
+        else:
+            gf_ext.gridsearch_params = g_params        
+
     # Stuff to print:         
     vx_gt_rsq_th = gf_ext.gridsearch_params[:,-1]>prf_settings['rsq_threshold']
     nr_vx_gt_rsq_th = np.mean(vx_gt_rsq_th) * 100
     mean_vx_gt_rsq_th = np.mean(gf_ext.gridsearch_params[vx_gt_rsq_th,-1])
     print(f'Percent of vx above rsq threshold: {nr_vx_gt_rsq_th}. Mean rsq for threshold vx {mean_vx_gt_rsq_th}')
+    if grid_only:
+        print('ONLY GRID!!!')
+        return
     # ************************************************************************
 
 
 
     
     # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< DO ITERATIVE FIT
-    iter_check = dag_find_file_in_folder([out, model, 'iter', constraints], output_dir, return_msg=None)
+    iter_check = dag_find_file_in_folder([out, model, 'iter', f'constr-{constraints}'], output_dir, return_msg=None)
     if (iter_check is not None) and (not overwrite):
         print(f'Already done {iter_check}')
         sys.exit()        
@@ -407,7 +420,7 @@ Example:
 
     gf_ext.iterative_fit(
         rsq_threshold=prf_settings['rsq_threshold'],    # Minimum variance explained. Puts a lower bound on the quality of PRF fits. Any fits worse than this are thrown away...     
-        verbose=False,
+        verbose=True,
         bounds=model_vx_bounds,       # Bounds (on parameters)
         constraints=n_constraints, # Constraints
         xtol=float(prf_settings['xtol']),     # float, passed to fitting routine numerical tolerance on x
@@ -428,45 +441,38 @@ Example:
     mean_vx_gt_rsq_th = np.mean(gf_ext.iterative_search_params[vx_gt_rsq_th,-1]) 
     print(f'Percent of vx above rsq threshold: {nr_vx_gt_rsq_th}. Mean rsq for threshold vx {mean_vx_gt_rsq_th}')
     
-    # CREATE PREDICTIONS
-    preds = gg_ext.return_prediction(*list(gf_ext.iterative_search_params[:,:-1].T))
-    preds = dag_filter_for_nans(preds)    
     # *************************************************************    
     
     
     # Save everything as a pickle...
-    if zero_pad:
-        iter_pars_to_save = gf_ext.iterative_search_params
-        preds_to_save = preds
-    else:
-        iter_pars_to_save = process_prfpy_out(gf_ext.iterative_search_params, roi_mask)
-        preds_to_save = process_prfpy_out(preds, roi_mask)    
-    
+    iter_pars_to_save = gf_ext.iterative_search_params        
     iter_pkl_file = opj(output_dir, f'{out}_stage-iter_constr-{constraints}_desc-prf_params.pkl')
     iter_dict = {}
     iter_dict['pars'] = iter_pars_to_save
     iter_dict['settings'] = prf_settings
-    iter_dict['preds'] = preds_to_save
     iter_dict['start_time'] = i_start_time
     iter_dict['end_time'] = i_end_time
     iter_dict['prfpy_model'] = gg_ext
     
     from figure_finder.utils import get_running_path, get_running_code_string
     iter_dict['running_code_string'] = get_running_code_string(get_running_path())
-    # Dump running code 
-    run_code_file = iter_pkl_file.replace('prf_params.pkl', 'running_code.py')
-    with open(run_code_file, 'w') as f:
-        f.write(iter_dict['running_code_string'])
-    
-    # Also dump the settings as a separate yaml file for ease of reading 
-    settings_file = iter_pkl_file.replace('prf_params.pkl', 'settings.yml')
-    with open(settings_file, 'w') as f:
-        yaml.dump(prf_settings, f)
 
     # Dump everything!!! into pickle
     f = open(iter_pkl_file, "wb")
     pickle.dump(iter_dict, f)
     f.close()
+    if last_batch:
+        # Dump running code 
+        iter_pkl_file = opj(output_dir, f'{out_no_batch_str}_stage-iter_constr-{constraints}_desc-prf_params.pkl')
+        run_code_file = iter_pkl_file.replace('prf_params.pkl', 'running_code.py')
+        with open(run_code_file, 'w') as f:
+            f.write(iter_dict['running_code_string'])
+        
+        # Also dump the settings as a separate yaml file for ease of reading 
+        settings_file = iter_pkl_file.replace('prf_params.pkl', 'settings.yml')
+        with open(settings_file, 'w') as f:
+            yaml.dump(prf_settings, f)
+
 
     print('DONE!!!')
 

@@ -97,8 +97,6 @@ Example:
             constraints = "bgfs"
         elif arg in ("--rsq_threshold"):
             rsq_threshold = float(argv[i+1])                        
-        elif arg in ("--yml_name"):
-            yml_name = argv[i+1]
         elif arg in ("--grid_only"):
             grid_only = True
         elif arg in ("--ow" or "--overwrite"):
@@ -156,7 +154,7 @@ Example:
             print(f'Overwriting {key} with {ow_prf_settings[key]}')
 
     # ****************************************************
-    # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< LOAD TIME SERIES & MASK THE ROI   
+    # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< LOAD TIME SERIES
     ts_data = load_data_tc(
         sub=sub, 
         ses=ses, 
@@ -367,8 +365,6 @@ Example:
     iter_dict['end_time'] = i_end_time
     iter_dict['prfpy_model'] = gg
 
-
-    # if last_batch:
     from figure_finder.utils import get_running_path, get_running_code_string
     iter_dict['running_code_string'] = get_running_code_string(get_running_path())
 

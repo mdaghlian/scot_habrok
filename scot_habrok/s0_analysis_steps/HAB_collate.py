@@ -102,6 +102,9 @@ Example:
             [sub, model, task, roi_fit, 'iter', f'constr-{constraints}', '.pkl', f'batch-{ib:03}-of-{batch_num:03}'],  output_dir, 
             return_msg=None, 
             )
+        if batch_pkl_file is None:
+            print(f'MISSING batch {ib} of {batch_num}')
+            return        
         print(batch_pkl_file.split('/')[-1])
         if ib==1:
             # LOAD ALL THE SETTINGS + PARS... we will put them in later

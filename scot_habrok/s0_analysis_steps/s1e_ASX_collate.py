@@ -10,8 +10,8 @@ opj = os.path.join
 prf_out = 'prf_no_hrf'
 prf_dir = opj(derivatives_dir, prf_out)
 
-sub_list = ['sub-01']
-task_list = ['AS0']
+sub_list = ['sub-01',] #  'sub-02', 'sub-03', 'sub-04', 'sub-05', 'sub-06']
+task_list = ['AS0', 'AS1', 'AS2']
 batch_num = 20
 roi_fit = 'all'
 constraint = '--tc'

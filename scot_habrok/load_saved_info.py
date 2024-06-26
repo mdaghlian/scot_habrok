@@ -14,6 +14,7 @@ from dag_prf_utils.utils import *
 from dag_prf_utils.prfpy_functions import set_tc_shape
 derivatives_dir = '/scratch/p307263/pilot1/derivatives/'
 code_dir = '/home4/p307263/programs/scot_habrok/scot_habrok'
+log_dir = '/home4/p307263/programs/scot_habrok/logs'
 default_ses = 'ses-1'
 
 def load_yml_settings():    

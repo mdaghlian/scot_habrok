@@ -39,7 +39,7 @@ Args:
     --batch_id          id giving the batch to run
     --batch_num         how many batches in total
     --grid_only         only run the grid
-    --nr_jobs           number of jobs
+    --n_jobs           number of jobs
     --verbose
     --tc                
     --bgfs
@@ -66,7 +66,7 @@ Example:
     task = None
     roi_fit = 'all'
     constraints = None
-    nr_jobs = None
+    n_jobs = None
     prf_out = 'prf'    
     overwrite = False
     rsq_threshold = None
@@ -89,7 +89,7 @@ Example:
             batch_num = int(argv[i+1])            
         elif arg in ("-r", "--roi_fit"):
             roi_fit = argv[i+1]
-        elif arg in ("--nr_jobs"):
+        elif arg in ("--n_jobs"):
             nr_jobs = int(argv[i+1])  
         elif arg in ("--tc"):
             constraints = "tc"

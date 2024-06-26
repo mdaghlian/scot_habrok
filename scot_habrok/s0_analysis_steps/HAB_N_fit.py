@@ -40,7 +40,7 @@ Args:
     --batch_id          id giving the batch to run
     --batch_num         how many batches in total
     --grid_only         only run the grid
-    --nr_jobs           number of jobs
+    --n_jobs           number of jobs
     --verbose
     --tc                
     --bgfs
@@ -67,7 +67,7 @@ Example:
     task = None
     roi_fit = 'all'
     constraints = None
-    nr_jobs = None
+    n_jobs = None
     prf_out = 'prf'    
     overwrite = False
     rsq_threshold = None
@@ -92,8 +92,8 @@ Example:
             batch_num = int(argv[i+1])            
         elif arg in ("-r", "--roi_fit"):
             roi_fit = argv[i+1]
-        elif arg in ("--nr_jobs"):
-            nr_jobs = int(argv[i+1])  
+        elif arg in ("--n_jobs"):
+            n_jobs = int(argv[i+1])  
         elif arg in ("--tc"):
             constraints = "tc"
         elif arg in ("--bgfs"):
@@ -137,7 +137,7 @@ Example:
     prf_settings['task'] = task
     prf_settings['model'] = model
     prf_settings['roi_fit'] = roi_fit
-    prf_settings['nr_jobs'] = nr_jobs
+    prf_settings['n_jobs'] = n_jobs
     prf_settings['constraints'] = constraints
     prf_settings['ses'] = ses
     prf_settings['task'] = task
@@ -208,7 +208,7 @@ Example:
     gf = Iso2DGaussianFitter(
         data=ts_data,             # time series
         model=gg,                       # model (see above)
-        n_jobs=prf_settings['nr_jobs'], # number of jobs to use in parallelization 
+        n_jobs=prf_settings['n_jobs'], # number of jobs to use in parallelization 
         )
     iter_gauss = dag_find_file_in_folder([sub, 'gauss', roi_fit, 'iter', task, f'constr-{constraints}', '.pkl'], output_dir, exclude='batch', return_msg=None)        
     if iter_gauss is None:
@@ -235,7 +235,7 @@ Example:
         gf_ext = Norm_Iso2DGaussianFitter(
             data=ts_data,           
             model=gg_ext,                  
-            n_jobs=prf_settings['nr_jobs'],
+            n_jobs=prf_settings['n_jobs'],
             previous_gaussian_fitter = gf,
             use_previous_gaussian_fitter_hrf = prf_settings['use_previous_gaussian_fitter_hrf'], 
             )
@@ -265,7 +265,7 @@ Example:
         gf_ext = DoG_Iso2DGaussianFitter(
             data=ts_data,           
             model=gg_ext,                  
-            n_jobs=prf_settings['nr_jobs'],
+            n_jobs=prf_settings['n_jobs'],
             previous_gaussian_fitter = gf,
             use_previous_gaussian_fitter_hrf = prf_settings['use_previous_gaussian_fitter_hrf'], 
             )
@@ -291,7 +291,7 @@ Example:
         gf_ext = CSS_Iso2DGaussianFitter(
             data=ts_data,           
             model=gg_ext,                  
-            n_jobs=prf_settings['nr_jobs'],
+            n_jobs=prf_settings['n_jobs'],
             previous_gaussian_fitter = gf,
             use_previous_gaussian_fitter_hrf = prf_settings['use_previous_gaussian_fitter_hrf'], 
             )
@@ -338,7 +338,7 @@ Example:
         gf_ext.grid_fit(
             *ext_grids,
             verbose=True,
-            n_batches=prf_settings['nr_jobs'],
+            n_batches=prf_settings['n_jobs'],
             rsq_threshold=prf_settings['rsq_threshold'],
             fixed_grid_baseline=prf_settings['fixed_grid_baseline'],
             grid_bounds=ext_grid_bounds,

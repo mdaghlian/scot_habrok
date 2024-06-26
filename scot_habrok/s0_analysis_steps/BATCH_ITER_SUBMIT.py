@@ -1,0 +1,118 @@
+#!/usr/bin/env python
+#$ -j Y
+#$ -cwd
+#$ -V
+
+import os
+opj = os.path.join
+import sys
+from scot_habrok.load_saved_info import *
+from dag_prf_utils.utils import dag_hyphen_parse, dag_arg_checker
+
+def main(argv):
+    '''
+    ---------------------------
+    Auto open a subject surface with either numpy or pickle values
+
+    Args:
+        --prf_out       where to put everything
+        --sub_list      subject list
+        --task_list     what tasks to submit
+        -m/--model      model to fit
+        --constraint    what constraint to use
+        --n_jobs        number of jobs
+        --batch_num     how many batches
+        --job_start     how many jobs in before starting
+        --job_end       how many jobs in before ending...
+        ...
+        --ses 
+        --roi_fit
+
+    '''
+    prf_out = None
+    sub_list = None
+    task_list = None
+    model = None
+    constraint = None
+    batch_num = None
+    n_jobs = None
+    job_start = 0
+    job_end = np.inf
+    # 
+    ses = 'ses-1'
+    roi_fit = 'all'
+
+    extra_kwargs = {}
+    for i,arg in enumerate(argv):        
+        if '--prf_out' in arg:                        
+            prf_out = argv[i+1]            
+        elif '--sub_list' in arg:
+            sub_list = argv[i+1].split(',')
+        elif '--task_list' in arg:
+            task_list = argv[i+1].split(',')
+        elif arg in ('-m', '--model'):
+            model = argv[i+1]
+        elif arg in ('--tc', '--bgfs'):
+            constraint = arg.split('--')[-1]
+        elif '--n_jobs' in arg:
+            n_jobs = int(argv[i+1])
+        elif '--batch_num' in arg:
+            batch_num = int(argv[i+1])
+        elif '--ses' in arg:
+            ses = dag_hyphen_parse('ses', argv[i+1])
+        elif '--roi_fit' in arg:
+            roi_fit = argv[i+1]
+        elif arg in ('-h', '--help'):
+            print(main.__doc__)
+            sys.exit()
+
+        elif '--' in arg:
+            this_kwarg = arg.replace('--', '')
+            this_kwarg_value = dag_arg_checker(argv, i+1)
+            extra_kwargs[this_kwarg] = this_kwarg_value
+            print(f'Unknown arg: {arg}')
+
+    # Sort out paths
+    prf_dir = opj(derivatives_dir, prf_out)
+    prf_log_dir = opj(log_dir, prf_out)
+
+    i = 0
+    for sub in sub_list:
+        p_dir = opj(prf_dir, sub, ses)
+        l_dir = opj(prf_log_dir, sub, ses)
+        # Make specific sub folder for the batch
+        if not os.path.exists(p_dir):
+            os.makedirs(p_dir)
+        if not os.path.exists(l_dir):
+            os.makedirs(l_dir)
+        for task in task_list:        
+            for batch_id in np.arange(1,batch_num+1):
+                prf_job_name = f'{sub}-{model}-{task}-iter-{batch_id:03}-of-{batch_num:03}'
+                output_file = os.path.abspath(opj(l_dir, f'{prf_job_name}_OUT.txt'))
+                error_file = os.path.abspath(opj(l_dir, f'{prf_job_name}_ERR.txt'))
+                slurm_args = f'--output {output_file} --error {error_file} --job-name {prf_job_name}'
+
+                i += 1
+                if i<job_start:
+                    print(f'skipping job number {i}')
+                    continue
+                if i<job_end:
+                    print(f'reached job number {i}... stopping')
+                    return
+                
+                job="sbatch"
+                if model=='gauss':
+                    script_path = opj(os.path.dirname(__file__),'HAB_G_fit_slurm')        
+                else:
+                    script_path = opj(os.path.dirname(__file__),'HAB_N_fit_slurm')        
+                # Arguments to pass to HAB_G_fit.py
+                script_args = f"--sub {sub} --task {task} --model {model} --roi_fit {roi_fit} --n_jobs {n_jobs} {constraint} --prf_out {prf_out} --batch_id {batch_id} --batch_num {batch_num}"
+                os.system(f'{job} {slurm_args} {script_path} --args "{script_args}"')
+                # sys.exit()
+    print(i)    
+
+
+if __name__ == "__main__":
+    main(sys.argv[1:])    
+
+

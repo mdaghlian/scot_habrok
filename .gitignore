@@ -14,3 +14,4 @@ reports
 z_*
 error*.txt
 output*.txt
+logs/

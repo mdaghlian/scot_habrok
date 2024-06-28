@@ -77,10 +77,8 @@ Example:
             batch_num = int(argv[i+1])            
         elif arg in ("-r", "--roi_fit"):
             roi_fit = argv[i+1]
-        elif arg in ("--tc"):
-            constraints = "tc"
-        elif arg in ("--bgfs"):
-            constraints = "bgfs"
+        elif arg in ("--tc", "--bgfs", "--nelder"):
+            constraints = arg.split('--')[-1]
         elif arg in ("--ow" or "--overwrite"):
             overwrite = True
         elif arg in ('-h', '--help'):
@@ -93,7 +91,15 @@ Example:
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)    
     out = f"{sub}_{model}_{roi_fit}_{task}-fits_COLLATED"    
-    
+    output_file = opj(output_dir, f'{out}_stage-iter_constr-{constraints}_desc-prf_params.pkl')
+    if os.path.exists(output_file):
+        print(f'Already exists {output_file.split("/")[-1]}')
+        if not overwrite:
+            print('Not overwriting')
+            return
+        else:
+            print('Overwriting')
+
     batch_idx = []
     batch_pars = []
     for ib in np.arange(1,batch_num+1):

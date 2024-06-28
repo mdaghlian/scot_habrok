@@ -24,6 +24,7 @@ def main(argv):
         --batch_num     how many batches
         --job_start     how many jobs in before starting
         --job_end       how many jobs in before ending...
+        --ow            overwrite?
         ...
         --ses 
         --roi_fit
@@ -34,10 +35,14 @@ def main(argv):
     task_list = None
     model = None
     constraint = None
+    constraint_flag = ''
+    hrf_version = 'old'
     batch_num = None
     n_jobs = None
     job_start = 0
     job_end = np.inf
+    ow = False
+    ow_flag = ''
     # 
     ses = 'ses-1'
     roi_fit = 'all'
@@ -52,16 +57,26 @@ def main(argv):
             task_list = argv[i+1].split(',')
         elif arg in ('-m', '--model'):
             model = argv[i+1]
-        elif arg in ('--tc', '--bgfs'):
+        elif arg in ('--tc', '--bgfs', '--nelder'):
             constraint = arg.split('--')[-1]
+            constraint_flag = arg
         elif '--n_jobs' in arg:
             n_jobs = int(argv[i+1])
         elif '--batch_num' in arg:
             batch_num = int(argv[i+1])
+        elif '--job_start' in arg:
+            job_start = int(argv[i+1])
+        elif '--job_end' in arg:
+            job_end = int(argv[i+1])            
         elif '--ses' in arg:
             ses = dag_hyphen_parse('ses', argv[i+1])
         elif '--roi_fit' in arg:
             roi_fit = argv[i+1]
+        elif '--hrf_version' in arg:
+            hrf_version = argv[i+1]            
+        elif arg in ("--ow" or "--overwrite"):
+            ow = True            
+            ow_flag = '--ow'
         elif arg in ('-h', '--help'):
             print(main.__doc__)
             sys.exit()
@@ -75,7 +90,6 @@ def main(argv):
     # Sort out paths
     prf_dir = opj(derivatives_dir, prf_out)
     prf_log_dir = opj(log_dir, prf_out)
-
     i = 0
     for sub in sub_list:
         p_dir = opj(prf_dir, sub, ses)
@@ -94,9 +108,9 @@ def main(argv):
 
                 i += 1
                 if i<job_start:
-                    print(f'skipping job number {i}')
+                    print(f'skipping job number {sub} {task} {batch_id}')
                     continue
-                if i<job_end:
+                if i>job_end:
                     print(f'reached job number {i}... stopping')
                     return
                 
@@ -105,8 +119,17 @@ def main(argv):
                     script_path = opj(os.path.dirname(__file__),'HAB_G_fit_slurm')        
                 else:
                     script_path = opj(os.path.dirname(__file__),'HAB_N_fit_slurm')        
+                batch_str = f'_batch-{batch_id:03}-of-{batch_num:03}'
+                iter_check = dag_find_file_in_folder(
+                    [task, roi_fit,model, 'iter', f'constr-{constraint}', batch_str, '.pkl'], 
+                    p_dir, 
+                    return_msg=None)
+                if (iter_check is not None) & (not ow):
+                    print(f'Already done : {iter_check.split("/")[-1]}')
+                    i -= 1
+                    continue
                 # Arguments to pass to HAB_G_fit.py
-                script_args = f"--sub {sub} --task {task} --model {model} --roi_fit {roi_fit} --n_jobs {n_jobs} {constraint} --prf_out {prf_out} --batch_id {batch_id} --batch_num {batch_num}"
+                script_args = f"--sub {sub} --task {task} --model {model} --roi_fit {roi_fit} --n_jobs {n_jobs} {constraint_flag} --prf_out {prf_out} --batch_id {batch_id} --batch_num {batch_num} {ow_flag}"
                 os.system(f'{job} {slurm_args} {script_path} --args "{script_args}"')
                 # sys.exit()
     print(i)    

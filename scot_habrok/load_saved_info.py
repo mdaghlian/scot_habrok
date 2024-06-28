@@ -17,8 +17,11 @@ code_dir = '/home4/p307263/programs/scot_habrok/scot_habrok'
 log_dir = '/home4/p307263/programs/scot_habrok/logs'
 default_ses = 'ses-1'
 
-def load_yml_settings():    
-    yml_path = os.path.abspath(opj(code_dir, 's0_analysis_steps/s0_prf_analysis.yml'))
+def load_yml_settings(hrf_version='old'):    
+    if hrf_version=='old':
+        yml_path = os.path.abspath(opj(code_dir, 's0_analysis_steps/s0_prf_analysis.yml'))
+    else:
+        yml_path = os.path.abspath(opj(code_dir, 's0_analysis_steps/s0_prf_analysis_NEW_HRF.yml'))
     # print(yml_path)
     # yml_path = 'scot_habrok/s0_analysis_steps/s0_prf_analysis.yml'
     with open(yml_path) as f:
@@ -57,7 +60,7 @@ def load_data_prf(sub, task_list, model_list, var_to_load='pars', roi_fit='all',
     if isinstance(include, str):
         include = [include]
 
-    exclude = kwargs.get('exclude', None)
+    exclude = kwargs.get('exclude', ['batch'])
     if isinstance(exclude, str):
         exclude = [exclude]
             

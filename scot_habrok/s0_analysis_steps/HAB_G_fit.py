@@ -60,6 +60,7 @@ Example:
     verbose = True
     cut_vols = 5
     n_timepts = 225 - cut_vols
+    hrf_version = 'old'
     
     # Specify
     sub = None
@@ -90,15 +91,19 @@ Example:
         elif arg in ("-r", "--roi_fit"):
             roi_fit = argv[i+1]
         elif arg in ("--n_jobs"):
-            nr_jobs = int(argv[i+1])  
+            n_jobs = int(argv[i+1])  
         elif arg in ("--tc"):
             constraints = "tc"
         elif arg in ("--bgfs"):
             constraints = "bgfs"
+        elif arg in ("--nelder"):
+            constraints = "nelder"
         elif arg in ("--rsq_threshold"):
             rsq_threshold = float(argv[i+1])                        
         elif arg in ("--grid_only"):
             grid_only = True
+        elif arg in ("--hrf_version"):
+            hrf_version = argv[i+1]
         elif arg in ("--ow" or "--overwrite"):
             overwrite = True
         elif arg in ('-h', '--help'):
@@ -127,7 +132,7 @@ Example:
 
     # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< LOAD SETTINGS
     # load basic settings from the yml file
-    prf_settings = load_yml_settings()
+    prf_settings = load_yml_settings(hrf_version)
     dm_task = task +''
     dm_task = dm_task.split('_run')[0] # 
     dm_task = dm_task.split('_fold')[0] 
@@ -136,7 +141,7 @@ Example:
     prf_settings['task'] = task
     prf_settings['model'] = model
     prf_settings['roi_fit'] = roi_fit
-    prf_settings['nr_jobs'] = nr_jobs
+    prf_settings['n_jobs'] = n_jobs
     prf_settings['constraints'] = constraints
     prf_settings['ses'] = ses
     prf_settings['task'] = task
@@ -204,7 +209,7 @@ Example:
     gf = Iso2DGaussianFitter(
         data=ts_data,             # time series
         model=gg,                       # model (see above)
-        n_jobs=prf_settings['nr_jobs'], # number of jobs to use in parallelization 
+        n_jobs=prf_settings['n_jobs'], # number of jobs to use in parallelization 
         )    
     # ************************************************************************
 
@@ -253,7 +258,7 @@ Example:
             hrf_1_grid=hrf_1_grid,
             hrf_2_grid=hrf_2_grid,
             verbose=True,
-            n_batches=prf_settings['nr_jobs'],                          # The grid fit is performed in parallel over n_batches of units.Batch parallelization is faster than single-unit parallelization and of sequential computing.
+            n_batches=prf_settings['n_jobs'],                          # The grid fit is performed in parallel over n_batches of units.Batch parallelization is faster than single-unit parallelization and of sequential computing.
             fixed_grid_baseline=prf_settings['fixed_grid_baseline'],    # Fix the baseline? This makes sense if we have fixed the baseline in preprocessing
             grid_bounds=gauss_grid_bounds,
             )
@@ -324,9 +329,19 @@ Example:
     # -> can also be used to make certain parameters interdependent (e.g. size depening on eccentricity... not normally done)
     if prf_settings['constraints']=='tc':
         g_constraints = []   # uses trust-constraint (slower, but moves further from grid
+        minimize_args = {}
     elif prf_settings['constraints']=='bgfs':
         g_constraints = None # uses l-BFGS (which is faster)
-
+        minimize_args = {}
+    elif prf_settings['constraints']=='nelder':
+        g_constraints = []
+        minimize_args = dict(
+            method='nelder-mead',            
+            options=dict(disp=False),
+            constraints=[],
+            tol=float(prf_settings['ftol']),
+            )
+        
     i_start_time = datetime.now().strftime('%Y-%m-%d_%H-%M')
     print(f'Starting iter {i_start_time}, constraints = {g_constraints}')
     start = time.time()
@@ -338,6 +353,7 @@ Example:
         constraints=g_constraints, # Constraints
         xtol=float(prf_settings['xtol']),     # float, passed to fitting routine numerical tolerance on x
         ftol=float(prf_settings['ftol']),     # float, passed to fitting routine numerical tolerance on function
+        minimize_args=minimize_args,
         )
 
     # Fiter for nans

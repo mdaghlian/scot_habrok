@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --time=0:50:00
+#SBATCH --time=1:00:00
 #SBATCH --partition=regular
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=30
@@ -17,9 +17,6 @@ while [[ "$#" -gt 0 ]]; do
     shift
 done
 
-# Ensure the output directory exists
-mkdir -p $OUTPUT_DIR
-echo $OUTPUT_DIR
 # THEN activate your specific environment load modules etc
 bash $HOME/programs/hab_cli/hab_activate_dag_prfpy
 

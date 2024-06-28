@@ -61,6 +61,7 @@ Example:
     verbose = True
     cut_vols = 5
     n_timepts = 225 - cut_vols
+    hrf_version = 'old'    
 
     # Specify
     sub = None
@@ -78,31 +79,31 @@ Example:
     for i,arg in enumerate(argv):
         if arg in ('-s', '--sub'):
             sub = dag_hyphen_parse('sub', argv[i+1])
-        elif arg in ('--ses'):
+        elif arg in ('--ses',):
             ses = dag_hyphen_parse('ses', argv[i+1])            
         elif arg in ('-t', '--task'):
             task = dag_hyphen_parse('task', argv[i+1])
         elif arg in ('-m', '--model'):
             model = argv[i+1]
-        elif '--prf_out' in arg:
+        elif arg in ('--prf_out',):
             prf_out = argv[i+1]   
-        elif '--batch_id' in arg:
+        elif arg in ('--batch_id',):
             batch_id = int(argv[i+1])
-        elif '--batch_num' in arg:
+        elif arg in ('--batch_num',):
             batch_num = int(argv[i+1])            
         elif arg in ("-r", "--roi_fit"):
             roi_fit = argv[i+1]
-        elif arg in ("--n_jobs"):
+        elif arg in ("--n_jobs",):
             n_jobs = int(argv[i+1])  
-        elif arg in ("--tc"):
-            constraints = "tc"
-        elif arg in ("--bgfs"):
-            constraints = "bgfs"
-        elif arg in ("--rsq_threshold"):
+        elif arg in ("--tc", "--bgfs", "--nelder"):
+            constraints = arg.split('--')[-1]
+        elif arg in ("--rsq_threshold",):
             rsq_threshold = float(argv[i+1])                        
-        elif arg in ("--grid_only"):
+        elif arg in ("--grid_only",):
             grid_only = True
-        elif arg in ("--ow" or "--overwrite"):
+        elif arg in ("--hrf_version",):
+            hrf_version = argv[i+1]            
+        elif arg in ("--ow", "--overwrite"):
             overwrite = True
         elif arg in ('-h', '--help'):
             print(main.__doc__)
@@ -128,7 +129,7 @@ Example:
 
     # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< LOAD SETTINGS
     # load basic settings from the yml file
-    prf_settings = load_yml_settings()
+    prf_settings = load_yml_settings(hrf_version)
     dm_task = task +''
     dm_task = dm_task.split('_run')[0] # 
     dm_task = dm_task.split('_fold')[0] 
@@ -411,8 +412,18 @@ Example:
     # -> can also be used to make certain parameters interdependent (e.g. size depening on eccentricity... not normally done)
     if prf_settings['constraints']=='tc':
         n_constraints = []   # uses trust-constraint (slower, but moves further from grid
+        minimize_args = {}
     elif prf_settings['constraints']=='bgfs':
         n_constraints = None # uses l-BFGS (which is faster)
+        minimize_args = {}
+    elif prf_settings['constraints']=='nelder':
+        n_constraints = []
+        minimize_args = dict(
+            method='nelder-mead',            
+            options=dict(disp=False),
+            constraints=[],
+            tol=float(prf_settings['ftol']),
+            )
 
     i_start_time = datetime.now().strftime('%Y-%m-%d_%H-%M')
     print(f'Starting iter {i_start_time}, constraints = {n_constraints}')
@@ -425,6 +436,7 @@ Example:
         constraints=n_constraints, # Constraints
         xtol=float(prf_settings['xtol']),     # float, passed to fitting routine numerical tolerance on x
         ftol=float(prf_settings['ftol']),     # float, passed to fitting routine numerical tolerance on function
+        minimize_args=minimize_args,
         )
 
     # Fiter for nans

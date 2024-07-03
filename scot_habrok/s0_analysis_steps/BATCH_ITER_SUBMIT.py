@@ -74,7 +74,7 @@ def main(argv):
             roi_fit = argv[i+1]
         elif '--hrf_version' in arg:
             hrf_version = argv[i+1]            
-        elif arg in ("--ow" or "--overwrite"):
+        elif arg in ("--ow", "--overwrite"):
             ow = True            
             ow_flag = '--ow'
         elif arg in ('-h', '--help'):
@@ -129,7 +129,11 @@ def main(argv):
                     i -= 1
                     continue
                 # Arguments to pass to HAB_G_fit.py
-                script_args = f"--sub {sub} --task {task} --model {model} --roi_fit {roi_fit} --n_jobs {n_jobs} {constraint_flag} --prf_out {prf_out} --batch_id {batch_id} --batch_num {batch_num} {ow_flag}"
+                script_args = f"--sub {sub} --task {task} --model {model} " +\
+                    f"--roi_fit {roi_fit} --n_jobs {n_jobs} {constraint_flag} --prf_out {prf_out} " +\
+                    f"--batch_id {batch_id} --batch_num {batch_num} --hrf_version {hrf_version} " +\
+                    f"{ow_flag} "
+                # os.system(f'bash {script_path} --args "{script_args}"')
                 os.system(f'{job} {slurm_args} {script_path} --args "{script_args}"')
                 # sys.exit()
     print(i)    

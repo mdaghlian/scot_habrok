@@ -7,15 +7,15 @@ import os
 import sys
 from scot_habrok.load_saved_info import *
 opj = os.path.join
-prf_out = 'prf_nelder_mead'
-hrf_version = 'old'
+prf_out = 'prf_NM_hrf4pt6_full'
+hrf_version = 'new'
 prf_dir = opj(derivatives_dir, prf_out)
 prf_log_dir = opj(log_dir, prf_out)
 
 model = 'gauss'
-sub_list = ['sub-01', ] # 'sub-02', 'sub-03', 'sub-04', 'sub-05', 'sub-06']
+sub_list = ['sub-01', 'sub-02', 'sub-03', 'sub-04', 'sub-05', 'sub-06']
 sub_list = ','.join(sub_list)
-task_list = ['AS0', ] # 'AS1', 'AS2']
+task_list = ['AS0', 'AS1', 'AS2']
 task_list = ','.join(task_list)
 n_jobs = 64
 batch_num = 20

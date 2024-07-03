@@ -92,19 +92,15 @@ Example:
             roi_fit = argv[i+1]
         elif arg in ("--n_jobs"):
             n_jobs = int(argv[i+1])  
-        elif arg in ("--tc"):
-            constraints = "tc"
-        elif arg in ("--bgfs"):
-            constraints = "bgfs"
-        elif arg in ("--nelder"):
-            constraints = "nelder"
-        elif arg in ("--rsq_threshold"):
+        elif arg in ("--tc", "--bgfs", "--nelder"):
+            constraints = arg.split('--')[-1]
+        elif arg in ("--rsq_threshold",):
             rsq_threshold = float(argv[i+1])                        
         elif arg in ("--grid_only"):
             grid_only = True
-        elif arg in ("--hrf_version"):
+        elif arg in ("--hrf_version",):
             hrf_version = argv[i+1]
-        elif arg in ("--ow" or "--overwrite"):
+        elif arg in ("--ow", "--overwrite"):
             overwrite = True
         elif arg in ('-h', '--help'):
             print(main.__doc__)

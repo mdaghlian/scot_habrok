@@ -1,8 +1,8 @@
 #!/bin/bash
-#SBATCH --time=0:50:00
+#SBATCH --time=2:00:00
 #SBATCH --partition=regular
 #SBATCH --nodes=1
-#SBATCH --ntasks-per-node=16
+#SBATCH --ntasks-per-node=30
 #SBATCH --profile=task
 
 

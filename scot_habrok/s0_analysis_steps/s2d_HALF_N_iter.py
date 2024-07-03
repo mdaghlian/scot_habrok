@@ -12,7 +12,7 @@ prf_dir = opj(derivatives_dir, prf_out)
 prf_log_dir = opj(log_dir, prf_out)
 
 model = 'norm'
-sub_list = ['sub-01', ] # 'sub-02', 'sub-03', 'sub-04', 'sub-05', 'sub-06']
+sub_list = ['sub-01', 'sub-02', 'sub-03', 'sub-04', 'sub-05', 'sub-06']
 sub_list = ','.join(sub_list)
 task_list = ['AS0_run-1', 'AS0_run-2', 'AS1_run-1', 'AS1_run-2', 'AS2_run-1', 'AS2_run-2']
 task_list = ','.join(task_list)

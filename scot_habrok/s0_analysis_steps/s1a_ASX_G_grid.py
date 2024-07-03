@@ -7,20 +7,20 @@ import os
 import sys
 from scot_habrok.load_saved_info import *
 opj = os.path.join
-prf_out = 'prf_no_hrf'
-hrf_version = 'old'
+prf_out = 'prf_NM_hrf4pt6_full'
+hrf_version = 'new'
 prf_dir = opj(derivatives_dir, prf_out)
 prf_log_dir = opj(log_dir, prf_out)
 
-sub_list = ['sub-01'] #, 'sub-02', 'sub-03', 'sub-04', 'sub-05', 'sub-06']
-task_list = [ 'AS0', ] # 'AS1', 'AS2']
+sub_list = ['sub-01', 'sub-02', 'sub-03', 'sub-04', 'sub-05', 'sub-06']
+task_list = [ 'AS0', 'AS1', 'AS2']
 n_jobs = 64
 batch_num = 20
 roi_fit = 'all'
-constraint = '--tc'
+constraint = '--nelder'
 ses = 'ses-1'
 model = 'gauss'
-ow = False
+ow = True
 # ************ LOOP THROUGH SUBJECTS ***************
 for sub in sub_list:
     this_dir = opj(prf_dir, sub, ses)

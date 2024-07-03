@@ -411,12 +411,15 @@ Example:
     # Constraints determines which scipy fitter is used
     # -> can also be used to make certain parameters interdependent (e.g. size depening on eccentricity... not normally done)
     if prf_settings['constraints']=='tc':
+        print('Using TRUST CONSTRAINT')
         n_constraints = []   # uses trust-constraint (slower, but moves further from grid
         minimize_args = {}
     elif prf_settings['constraints']=='bgfs':
+        print('Using BGFS')
         n_constraints = None # uses l-BFGS (which is faster)
         minimize_args = {}
     elif prf_settings['constraints']=='nelder':
+        print('Using NELDER MEAD')
         n_constraints = []
         minimize_args = dict(
             method='nelder-mead',            

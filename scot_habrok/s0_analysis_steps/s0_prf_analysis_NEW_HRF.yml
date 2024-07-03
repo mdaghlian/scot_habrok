@@ -16,10 +16,10 @@ normalize_RFs: False
 n_pix: 100
 eps: 1e-1
 
-fixed_grid_baseline : 0
+fixed_grid_baseline : False
 
 # set prf amplitude
-bold_bsl: [0,0]
+bold_bsl: [-3,3]
 prf_ampl: [0,1000]
 css_exponent: [0.01,3]
 
@@ -49,5 +49,5 @@ hrf:
   disp_bound: [0,0]
 
 grid_nr: 20 # 20 OG 
-rsq_threshold: 0.1
+rsq_threshold: 0.01
 TR: 1.5

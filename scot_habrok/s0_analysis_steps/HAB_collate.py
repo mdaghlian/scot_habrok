@@ -67,19 +67,21 @@ Example:
     for i,arg in enumerate(argv):
         if arg in ('-s', '--sub'):
             sub = dag_hyphen_parse('sub', argv[i+1])
-        elif arg in ('--ses'):
+        elif arg in ('--ses',):
             ses = dag_hyphen_parse('ses', argv[i+1])            
         elif arg in ('-t', '--task'):
             task = dag_hyphen_parse('task', argv[i+1])
-        elif '--prf_out' in arg:
+        elif arg in ('--model', ):
+            model = argv[i+1]
+        elif '--prf_out' == arg:
             prf_out = argv[i+1]   
-        elif '--batch_num' in arg:
+        elif '--batch_num' == arg:
             batch_num = int(argv[i+1])            
         elif arg in ("-r", "--roi_fit"):
             roi_fit = argv[i+1]
         elif arg in ("--tc", "--bgfs", "--nelder"):
             constraints = arg.split('--')[-1]
-        elif arg in ("--ow" or "--overwrite"):
+        elif arg in ("--ow", "--overwrite"):
             overwrite = True
         elif arg in ('-h', '--help'):
             print(main.__doc__)
@@ -90,7 +92,9 @@ Example:
     output_dir = opj(prf_dir, sub, ses)
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)    
-    out = f"{sub}_{model}_{roi_fit}_{task}-fits_COLLATED"    
+    out = f"{sub}_{dag_hyphen_parse('model', model)}_" + \
+        f"{dag_hyphen_parse('roi', roi_fit)}_" + \
+            f"{dag_hyphen_parse('task', task)}-fits_COLLATED"    
     output_file = opj(output_dir, f'{out}_stage-iter_constr-{constraints}_desc-prf_params.pkl')
     if os.path.exists(output_file):
         print(f'Already exists {output_file.split("/")[-1]}')

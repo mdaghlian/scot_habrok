@@ -117,8 +117,10 @@ def main(argv):
                 job="sbatch"
                 if model=='gauss':
                     script_path = opj(os.path.dirname(__file__),'HAB_G_fit_slurm')        
-                else:
+                elif model=='norm':
                     script_path = opj(os.path.dirname(__file__),'HAB_N_fit_slurm')        
+                elif model=='hrf':
+                    script_path = opj(os.path.dirname(__file__),'HAB_G_fit_HRF_slurm')        
                 batch_str = f'_batch-{batch_id:03}-of-{batch_num:03}'
                 iter_check = dag_find_file_in_folder(
                     [task, roi_fit,model, 'iter', f'constr-{constraint}', batch_str, '.pkl'], 

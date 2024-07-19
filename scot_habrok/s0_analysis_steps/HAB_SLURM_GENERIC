@@ -1,0 +1,25 @@
+#!/bin/bash
+#SBATCH --partition=regular
+#SBATCH --nodes=1
+#SBATCH --profile=task
+
+# Parse command-line arguments
+while [[ "$#" -gt 0 ]]; do
+    case $1 in
+        --args) ARGUMENT_STRING="$2"; shift ;;
+        --script_path) script_path="$2"; shift ;;
+        *) echo "Unknown parameter passed: $1"; exit 1 ;;
+    esac
+    shift
+done
+
+# THEN activate your specific environment load modules etc
+bash $HOME/programs/hab_cli/hab_activate_dag_prfpy
+
+# Check which Python is being used
+echo "Using Python executable: $(which python)"
+python -c "import sys; print('Python version:', sys.version)"
+
+# Your script command
+echo "Running main script"
+python $script_path $ARGUMENT_STRING

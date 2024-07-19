@@ -16,7 +16,7 @@ normalize_RFs: False
 n_pix: 100
 eps: 1e-1
 
-fixed_grid_baseline : False
+fixed_grid_baseline : None
 
 # set prf amplitude
 bold_bsl: [-3,3]
@@ -45,7 +45,7 @@ dog:
 
 hrf:
   pars: [1,4.6,0]
-  deriv_bound: [4.6,4.6]
+  deriv_bound: [0,10]
   disp_bound: [0,0]
 
 grid_nr: 20 # 20 OG 

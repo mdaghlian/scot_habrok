@@ -316,10 +316,17 @@ Example:
     ]    
     # & the hrf bounds. these will be overwritten later by the vx wise hrf parameters
     # ( inherited from previous fits)
-    hrf_bounds = [
-        (prf_settings['hrf']['deriv_bound']),                   # hrf_1 bound
-        (prf_settings['hrf']['disp_bound']),                    # hrf_2 bound
-    ]
+    if fit_hrf:
+        hrf_bounds = [
+            (prf_settings['hrf']['deriv_bound']),                   # hrf_1 bound
+            (prf_settings['hrf']['disp_bound']),                    # hrf_2 bound
+        ]
+    else:
+        hrf_bounds = [
+            (prf_settings['hrf']['pars'][1], prf_settings['hrf']['pars'][1]),                   # hrf_1 bound
+            (prf_settings['hrf']['pars'][2], prf_settings['hrf']['pars'][2]),                   # hrf_1 bound
+        ]        
+
     ext_bounds = standard_bounds.copy() + ext_custom_bounds.copy() + hrf_bounds.copy()
 
     # Make sure we don't accidentally save gf stuff

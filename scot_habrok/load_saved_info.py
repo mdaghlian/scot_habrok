@@ -12,7 +12,9 @@ except:
 
 from dag_prf_utils.utils import *
 from dag_prf_utils.prfpy_functions import set_tc_shape
+
 derivatives_dir = '/scratch/p307263/pilot1/derivatives/'
+fs_dir = opj(derivatives_dir, 'freesurfer')
 code_dir = '/home4/p307263/programs/scot_habrok/scot_habrok'
 log_dir = '/home4/p307263/programs/scot_habrok/logs'
 default_ses = 'ses-1'
@@ -26,6 +28,10 @@ def load_yml_settings(hrf_version='old'):
     # yml_path = 'scot_habrok/s0_analysis_steps/s0_prf_analysis.yml'
     with open(yml_path) as f:
         prf_settings = yaml.full_load(f)    
+
+    for k in prf_settings.keys():
+        if prf_settings[k]=='None':
+            prf_settings[k] = None
     return prf_settings
 
 def load_data_tc(sub, task_list, ses=default_ses, look_in=None, do_demo=False, n_timepts=None):
@@ -46,7 +52,11 @@ def load_data_tc(sub, task_list, ses=default_ses, look_in=None, do_demo=False, n
         if do_demo:
             data_tc[task] = data_tc[task][0:100,:]
     return data_tc
-
+def load_roi(sub, roi, **kwargs):
+    roi_idx = dag_load_roi(
+        sub=sub, roi=roi, fs_dir=opj(derivatives_dir, 'freesurfer'), **kwargs)
+    return roi_idx
+    
 def load_data_prf(sub, task_list, model_list, var_to_load='pars', roi_fit='all', fit_stage='iter', ses=default_ses, look_in=None, **kwargs):
     '''
     Load PRF model fits on * DATA *  (pkl file)

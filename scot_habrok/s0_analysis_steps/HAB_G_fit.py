@@ -246,6 +246,7 @@ Example:
         # *** NOTE we will overwrite the HRF parameters for AS1, AS2 tasks -> & use those fit in AS0 *** 
         gauss_grid_bounds = [prf_settings['prf_ampl']] 
         print(prf_settings['fixed_grid_baseline'])
+        print(type(prf_settings['fixed_grid_baseline']))
 
         gf.grid_fit(
             ecc_grid=eccs,
@@ -309,6 +310,12 @@ Example:
     if (iter_check is not None) and (not overwrite):
         print(f'Already done {iter_check}')
         sys.exit()        
+    if fit_hrf:
+        hrf_bound_1 = (prf_settings['hrf']['deriv_bound'][0], prf_settings['hrf']['deriv_bound'][1]) # hrf_1 bound
+        hrf_bound_2 = (prf_settings['hrf']['disp_bound'][0], prf_settings['hrf']['disp_bound'][1]) # hrf_1 bound
+    else:
+        hrf_bound_1 = (prf_settings['hrf']['pars'][1], prf_settings['hrf']['pars'][1]) # hrf_1 bound
+        hrf_bound_2 = (prf_settings['hrf']['pars'][2], prf_settings['hrf']['pars'][2]) # hrf_1 bound
 
     gauss_bounds = [
         (-1.5*max_eccentricity, 1.5*max_eccentricity),          # x bound
@@ -316,8 +323,8 @@ Example:
         (1e-1, max_eccentricity*3),                             # prf size bounds
         (prf_settings['prf_ampl'][0],prf_settings['prf_ampl'][1]),      # prf amplitude
         (prf_settings['bold_bsl'][0],prf_settings['bold_bsl'][1]),      # bold baseline (fixed)
-        (prf_settings['hrf']['deriv_bound'][0], prf_settings['hrf']['deriv_bound'][1]), # hrf_1 bound
-        (prf_settings['hrf']['disp_bound'][0],  prf_settings['hrf']['disp_bound'][1]), # hrf_2 bound
+        hrf_bound_1,
+        hrf_bound_2
     ]
     print(gauss_bounds)
 

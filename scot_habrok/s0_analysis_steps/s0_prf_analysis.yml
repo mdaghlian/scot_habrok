@@ -45,7 +45,7 @@ dog:
 
 hrf:
   pars: [1,1,0]
-  deriv_bound: [1,1]
+  deriv_bound: [0,10]
   disp_bound: [0,0]
 
 grid_nr: 10 # 20 OG 

@@ -23,10 +23,11 @@ constraint = '--nelder'
 ses = 'ses-1'
 model = 'gauss'
 ow = False
+ow_flag = ''
 
 prf_dir = opj(derivatives_dir, prf_out)
 prf_log_dir = opj(log_dir, prf_out)
-sub_list = ['sub-01', 'sub-02', 'sub-03', 'sub-04', 'sub-05', 'sub-06']
+sub_list = ['sub-07'] # 'sub-01', 'sub-02', 'sub-03', 'sub-04', 'sub-05', 'sub-06']
 task_list = [ 'AS0', 'AS1', 'AS2']
 
 # ************ LOOP THROUGH SUBJECTS ***************
@@ -38,13 +39,13 @@ for sub in sub_list:
     for task in task_list:    
         prf_job_name = f'{sub}-gauss-{task}-grid'
         done_check = dag_find_file_in_folder(
-            [model, roi_fit, task, 'grid', '.pkl'],
+            [model, roi_fit, task, 'grid', '.pkl', f'hrf-{hrf_version}'],
             path=this_dir,
             return_msg=None,
         )
-        # if (done_check is not None) & (not ow):
-        #     print(f'Already done {done_check}')
-        #     continue
+        if (done_check is not None) & (not ow):
+            print(f'Already done {done_check}')
+            continue
 
 
         output_file = os.path.abspath(opj(this_log_dir, f'{prf_job_name}_OUT.txt'))
@@ -57,10 +58,8 @@ for sub in sub_list:
         script_path = opj(os.path.dirname(__file__),'HAB_G_fit.py')        
         # Arguments to pass to HAB_G_fit.py
         script_args = f"--sub {sub} --task {task} --roi_fit {roi_fit} --n_jobs {n_jobs} " + \
-            f"{constraint} --prf_out {prf_out} --grid_only --hrf_version {hrf_version} --ow"
+            f"{constraint} --prf_out {prf_out} --grid_only --hrf_version {hrf_version} {ow_flag}"
         
-        os.system(
-            f"{job} {slurm_args} {slurm_path} " + \
-            f"--script_path {script_path} --args {script_args}"
-            )
-        sys.exit()
+        os.system(f'{job} {slurm_args} {slurm_path} --script_path {script_path} --args "{script_args}"')
+        # os.system(f'python {script_path} {script_args}')
+        # sys.exit()

@@ -10,9 +10,10 @@ opj = os.path.join
 prf_out = 'prf_NM_hrf4pt6_BL_full'
 prf_dir = opj(derivatives_dir, prf_out)
 
-sub_list = ['sub-01', 'sub-02', 'sub-03', 'sub-04', 'sub-05', 'sub-06']
+sub_list = ['sub-07',] #  'sub-02', 'sub-03', 'sub-04', 'sub-05', 'sub-06']
 task_list = ['AS0','AS1', 'AS2']
 model_list = ['gauss'] # ['gauss', 'norm']
+hrf_version = 'new'
 batch_num = 20
 roi_fit = 'all'
 constraint = '--nelder'
@@ -25,6 +26,6 @@ for sub in sub_list:
             job="python"
             script_path = opj(os.path.dirname(__file__),'HAB_collate.py')        
             # Arguments to pass to HAB_G_fit.py
-            script_args = f"--sub {sub} --task {task} --model {model} --roi_fit {roi_fit} {constraint} --prf_out {prf_out} --batch_num {batch_num}"
+            script_args = f"--sub {sub} --task {task} --model {model} --hrf_version {hrf_version} --roi_fit {roi_fit} {constraint} --prf_out {prf_out} --batch_num {batch_num}"
             os.system(f'{job} {script_path} {script_args}')
             # sys.exit()

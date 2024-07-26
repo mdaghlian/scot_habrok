@@ -37,6 +37,7 @@ Args:
     -s (--sub=)         e.g., 01
     -t (--task=)        task (AS0, AS1, AS2)
     -m (--model=)       
+    --hrf_version 
     --batch_num 
     --roi_fit
     --tc                
@@ -53,7 +54,6 @@ Example:
     # default
     ses = 'ses-1'
     model = 'gauss'
-    fit_hrf = False
     verbose = True
     
     # Specify
@@ -64,6 +64,7 @@ Example:
     prf_out = 'prf'    
     overwrite = False
     batch_num = None
+    hrf_version = 'old'
     for i,arg in enumerate(argv):
         if arg in ('-s', '--sub'):
             sub = dag_hyphen_parse('sub', argv[i+1])
@@ -77,6 +78,8 @@ Example:
             prf_out = argv[i+1]   
         elif '--batch_num' == arg:
             batch_num = int(argv[i+1])            
+        elif arg in ('--hrf_version', ):
+            hrf_version = f'hrf-{argv[i+1]}'
         elif arg in ("-r", "--roi_fit"):
             roi_fit = argv[i+1]
         elif arg in ("--tc", "--bgfs", "--nelder"):
@@ -94,7 +97,8 @@ Example:
         os.makedirs(output_dir)    
     out = f"{sub}_{dag_hyphen_parse('model', model)}_" + \
         f"{dag_hyphen_parse('roi', roi_fit)}_" + \
-            f"{dag_hyphen_parse('task', task)}-fits_COLLATED"    
+        f"{dag_hyphen_parse('hrf', hrf_version)}_" + \
+        f"{dag_hyphen_parse('task', task)}-fits_COLLATED"    
     output_file = opj(output_dir, f'{out}_stage-iter_constr-{constraints}_desc-prf_params.pkl')
     if os.path.exists(output_file):
         print(f'Already exists {output_file.split("/")[-1]}')
@@ -109,7 +113,8 @@ Example:
     for ib in np.arange(1,batch_num+1):
         # Find the pickle file
         batch_pkl_file = dag_find_file_in_folder(
-            [sub, model, task, roi_fit, 'iter', f'constr-{constraints}', '.pkl', f'batch-{ib:03}-of-{batch_num:03}'],  output_dir, 
+            [sub, model, task, roi_fit, 'iter', f'constr-{constraints}', '.pkl', f'batch-{ib:03}-of-{batch_num:03}', dag_hyphen_parse('hrf', hrf_version)],  
+            output_dir, 
             return_msg=None, 
             )
         if batch_pkl_file is None:
@@ -127,7 +132,8 @@ Example:
         
         # Also load the index            
         batch_idx_file = dag_find_file_in_folder(
-            [sub, model, task, roi_fit, 'batch-idx.npy', f'batch-{ib:03}-of-{batch_num:03}'],  output_dir, 
+            [sub, model, task, roi_fit, 'batch-idx.npy', f'batch-{ib:03}-of-{batch_num:03}', dag_hyphen_parse('hrf', hrf_version)],  
+            output_dir, 
             return_msg=None, 
             )
         batch_idx.append(np.load(batch_idx_file))

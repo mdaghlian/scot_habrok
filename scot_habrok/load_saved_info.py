@@ -19,11 +19,14 @@ code_dir = '/home4/p307263/programs/scot_habrok/scot_habrok'
 log_dir = '/home4/p307263/programs/scot_habrok/logs'
 default_ses = 'ses-1'
 
-def load_yml_settings(hrf_version='old'):    
+def load_yml_settings(hrf_version='old', sub=None):    
     if hrf_version=='old':
-        yml_path = os.path.abspath(opj(code_dir, 's0_analysis_steps/s0_prf_analysis.yml'))
-    else:
+        yml_path = os.path.abspath(opj(code_dir, 's0_analysis_steps/s0_prf_analysis.yml'))        
+    elif hrf_version=='new':
         yml_path = os.path.abspath(opj(code_dir, 's0_analysis_steps/s0_prf_analysis_NEW_HRF.yml'))
+    elif hrf_version=='optimal':
+        yml_path = os.path.abspath(opj(code_dir, 's0_analysis_steps/s0_prf_analysis_NEW_HRF.yml'))
+        
     # print(yml_path)
     # yml_path = 'scot_habrok/s0_analysis_steps/s0_prf_analysis.yml'
     with open(yml_path) as f:
@@ -32,7 +35,51 @@ def load_yml_settings(hrf_version='old'):
     for k in prf_settings.keys():
         if prf_settings[k]=='None':
             prf_settings[k] = None
+    # UPDATE THE HRF
+    if hrf_version=='optimal':
+        prf_settings['hrf']['pars'][1] = load_optimal_hrf(sub)
+
     return prf_settings
+def get_scotoma_info():    
+    scotoma_info = {}
+    # Now get task specific info, and sort out the dodgy stuff...
+    scotoma_info['AS0'] = {
+        'scotoma_centre' : [],
+        'scotoma_radius' : [],
+    }
+
+    # Is the distance to the screen the same?... 
+    # need to convert from exp (I accidentally set screen distance to be 210, not 196)
+    exptools_ssize = np.degrees(2 *np.arctan((39.3/2)/210))
+    fitting_ssize = np.degrees(2 *np.arctan((39.3/2)/196))                
+    conversion_factor = fitting_ssize / exptools_ssize
+    # if (sub=="sub-01"): # & (ses=="ses-1"):        
+    #     # need to convert from exp (I accidentally set screen distance to be 210, not 196)
+    #     exptools_ssize = np.degrees(2 *np.arctan((39.3/2)/210))
+    #     fitting_ssize = np.degrees(2 *np.arctan((39.3/2)/196))                
+    #     conversion_factor = fitting_ssize / exptools_ssize
+    # else:
+    #     conversion_factor=1
+
+    scotoma_info['AS1'] = {
+        'scotoma_centre' : [0.8284* conversion_factor,0.8284* conversion_factor] ,
+        'scotoma_radius' : 0.8284* conversion_factor,
+    }
+    scotoma_info['AS2'] = {
+        'scotoma_centre' : [0* conversion_factor,0* conversion_factor] ,
+        'scotoma_radius' : 2* conversion_factor,
+    }    
+    return scotoma_info
+    
+def load_optimal_hrf(sub):
+    print('hereeeeeeee')
+    optimal_hrf_file = dag_find_file_in_folder(
+        [sub, '.yml', 'OPTIMAL']   ,
+        code_dir
+    )
+    with open(optimal_hrf_file) as f:
+        optimal_hrf = yaml.full_load(f)    
+    return float(optimal_hrf['hrf_1'])
 
 def load_data_tc(sub, task_list, ses=default_ses, look_in=None, do_demo=False, n_timepts=None):
     '''

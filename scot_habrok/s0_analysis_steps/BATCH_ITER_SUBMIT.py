@@ -46,7 +46,7 @@ def main(argv):
     # 
     ses = 'ses-1'
     roi_fit = 'all'
-
+    sl_args = '' # slurm arguments
     extra_kwargs = {}
     for i,arg in enumerate(argv):        
         if '--prf_out' in arg:                        
@@ -80,7 +80,8 @@ def main(argv):
         elif arg in ('-h', '--help'):
             print(main.__doc__)
             sys.exit()
-
+        elif arg in ('--time', '--nodes', '--ntasks-per-node'):
+            sl_args += f' {arg} {argv[i+1]}'
         elif '--' in arg:
             this_kwarg = arg.replace('--', '')
             this_kwarg_value = dag_arg_checker(argv, i+1)
@@ -104,7 +105,8 @@ def main(argv):
                 prf_job_name = f'{sub}-{model}-{task}-iter-{batch_id:03}-of-{batch_num:03}'
                 output_file = os.path.abspath(opj(l_dir, f'{prf_job_name}_OUT.txt'))
                 error_file = os.path.abspath(opj(l_dir, f'{prf_job_name}_ERR.txt'))
-                slurm_args = f'--output {output_file} --error {error_file} --job-name {prf_job_name}'
+                slurm_args = f'--output {output_file} --error {error_file} --job-name {prf_job_name}' + \
+                    sl_args
 
                 i += 1
                 if i<job_start:
@@ -115,28 +117,37 @@ def main(argv):
                     return
                 
                 job="sbatch"
+                slurm_path = opj(os.path.dirname(__file__),'HAB_SLURM_GENERIC')        
                 if model=='gauss':
-                    script_path = opj(os.path.dirname(__file__),'HAB_G_fit_slurm')        
+                    script_path = opj(os.path.dirname(__file__),'HAB_G_fit.py')        
                 elif model=='norm':
-                    script_path = opj(os.path.dirname(__file__),'HAB_N_fit_slurm')        
-                elif model=='hrf':
-                    script_path = opj(os.path.dirname(__file__),'HAB_G_fit_HRF_slurm')        
+                    script_path = opj(os.path.dirname(__file__),'HAB_N_fit.py')        
+                elif model=='HRF':
+                    script_path = opj(os.path.dirname(__file__),'HAB_G_fit_HRF.py')        
                 batch_str = f'_batch-{batch_id:03}-of-{batch_num:03}'
                 iter_check = dag_find_file_in_folder(
-                    [task, roi_fit,model, 'iter', f'constr-{constraint}', batch_str, '.pkl'], 
+                    [task, roi_fit, model, 'iter', f'constr-{constraint}', f'hrf-{hrf_version}', batch_str, '.pkl'], 
                     p_dir, 
                     return_msg=None)
+                # continue
+                # print([task, roi_fit, model, 'iter', f'constr-{constraint}', batch_str, '.pkl'])
+                # print(p_dir)
+                # print(f'OW = {ow}')
                 if (iter_check is not None) & (not ow):
                     print(f'Already done : {iter_check.split("/")[-1]}')
                     i -= 1
                     continue
-                # Arguments to pass to HAB_G_fit.py
+                # Arguments to pass to fitters
                 script_args = f"--sub {sub} --task {task} --model {model} " +\
                     f"--roi_fit {roi_fit} --n_jobs {n_jobs} {constraint_flag} --prf_out {prf_out} " +\
                     f"--batch_id {batch_id} --batch_num {batch_num} --hrf_version {hrf_version} " +\
                     f"{ow_flag} "
-                # os.system(f'bash {script_path} --args "{script_args}"')
-                os.system(f'{job} {slurm_args} {script_path} --args "{script_args}"')
+                # print(f'python {script_path} {script_args}')
+                # Run locally 
+                # os.system(f'python {script_path} {script_args}')
+
+                # Submit!
+                os.system(f'{job} {slurm_args} {slurm_path} --script_path {script_path} --args "{script_args}"')
                 # sys.exit()
     print(i)    
 

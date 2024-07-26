@@ -123,12 +123,13 @@ Example:
             last_batch = False
     else:
         batch_str = ''
-    out = f"{sub}_{dag_hyphen_parse('model', model)}_{dag_hyphen_parse('roi', roi_fit)}_{task}-fits{batch_str}"    
-    out_no_batch_str = f"{sub}_{dag_hyphen_parse('model', model)}_{dag_hyphen_parse('roi', roi_fit)}_{task}-fits"    
+    hrf_str = dag_hyphen_parse('hrf', hrf_version)
+    out = f"{sub}_{dag_hyphen_parse('model', model)}_{dag_hyphen_parse('roi', roi_fit)}_{hrf_str}_{task}-fits{batch_str}"    
+    out_no_batch_str = f"{sub}_{dag_hyphen_parse('model', model)}_{dag_hyphen_parse('roi', roi_fit)}_{hrf_str}_{task}-fits"    
 
     # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< LOAD SETTINGS
     # load basic settings from the yml file
-    prf_settings = load_yml_settings(hrf_version)
+    prf_settings = load_yml_settings(hrf_version, sub=sub)
     dm_task = task +''
     dm_task = dm_task.split('_run')[0] # 
     dm_task = dm_task.split('_fold')[0] 
@@ -153,7 +154,8 @@ Example:
         for key in ow_prf_settings.keys():
             prf_settings[key] = ow_prf_settings[key]
             print(f'Overwriting {key} with {ow_prf_settings[key]}')
-
+    print(f'********* HRF **************')
+    print(prf_settings['hrf']['pars'])
     # ****************************************************
     # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< LOAD TIME SERIES
     ts_data = load_data_tc(
@@ -215,9 +217,9 @@ Example:
     # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< IF NOT DONE - DO GRID FIT
     # CHECK FOR TOTAL grid fit...
     # Check has it been run for *all grids*    
-    grid_gauss = dag_find_file_in_folder([sub, model, task, roi_fit, 'gauss', 'grid'], output_dir, return_msg=None, exclude=['batch'])            
+    grid_gauss = dag_find_file_in_folder([sub, model, task, hrf_str, roi_fit, 'gauss', 'grid'], output_dir, return_msg=None, exclude=['batch'])            
     if grid_gauss is None:
-        grid_gauss = dag_find_file_in_folder([sub, model, task, roi_fit, 'gauss', 'grid', batch_str], output_dir, return_msg=None, exclude=['batch'])        
+        grid_gauss = dag_find_file_in_folder([sub, model, task, hrf_str, roi_fit, 'gauss', 'grid', batch_str], output_dir, return_msg=None, exclude=['batch'])        
         need_to_select_grid_params_for_batch = False
     else:
         need_to_select_grid_params_for_batch = True

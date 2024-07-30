@@ -14,8 +14,8 @@ sl_task_per_node = '30'
 sl_time = '5:00:00'
 
 # Where is it going? What HRF version is being used
-prf_out = 'prf_NM_hrf4pt6_BL_full'
-hrf_version = 'new'
+prf_out = 'prf_NM_HRFfit_BL'
+hrf_version = 'optimal'
 n_jobs = 64
 batch_num = 20
 roi_fit = 'all'
@@ -27,7 +27,7 @@ ow_flag = ''
 
 prf_dir = opj(derivatives_dir, prf_out)
 prf_log_dir = opj(log_dir, prf_out)
-sub_list = ['sub-07'] # 'sub-01', 'sub-02', 'sub-03', 'sub-04', 'sub-05', 'sub-06']
+sub_list = ['sub-01', 'sub-02', 'sub-03', 'sub-04', 'sub-05', 'sub-06', 'sub-07']
 task_list = [ 'AS0', 'AS1', 'AS2']
 
 # ************ LOOP THROUGH SUBJECTS ***************
@@ -46,7 +46,6 @@ for sub in sub_list:
         if (done_check is not None) & (not ow):
             print(f'Already done {done_check}')
             continue
-
 
         output_file = os.path.abspath(opj(this_log_dir, f'{prf_job_name}_OUT.txt'))
         error_file = os.path.abspath(opj(this_log_dir, f'{prf_job_name}_ERR.txt'))

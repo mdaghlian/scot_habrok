@@ -15,18 +15,18 @@ sl_task_per_node = '30'
 sl_time = '5:00:00'
 
 # Where is it going? What HRF version is being used
-prf_out = 'prf_NM_hrf4pt6_BL_full'
+prf_out = 'prf_NM_HRFfit_BL'
 hrf_version = 'optimal'
 n_jobs = 64
 batch_num = 20
 roi_fit = 'all'
 constraint = '--nelder'
 ses = 'ses-1'
-model = 'norm'
+model = 'gauss'
 ow = False
 ow_flag = ''
 
-sub_list = ['sub-01', 'sub-02', 'sub-03', 'sub-04', 'sub-05', 'sub-06']
+sub_list = ['sub-01' , 'sub-02', 'sub-03', 'sub-04', 'sub-05', 'sub-06', 'sub-07']
 sub_list = ','.join(sub_list)
 task_list = ['AS0', 'AS1', 'AS2']
 task_list = ','.join(task_list)

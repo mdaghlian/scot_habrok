@@ -39,6 +39,7 @@ Args:
     -t (--task=)        e.g., AS0, AS1, AS2
     --batch_id          id giving the batch to run
     --batch_num         how many batches in total
+    --hrf_version       hrf version
     --grid_only         only run the grid
     --n_jobs           number of jobs
     --verbose
@@ -91,6 +92,8 @@ Example:
             batch_id = int(argv[i+1])
         elif arg in ('--batch_num',):
             batch_num = int(argv[i+1])            
+        elif arg in ('--hrf_version',):
+            hrf_version = argv[i+1]
         elif arg in ("-r", "--roi_fit"):
             roi_fit = argv[i+1]
         elif arg in ("--n_jobs",):
@@ -110,7 +113,7 @@ Example:
             sys.exit(2)
         elif '--' in arg:
             ow_prf_settings[arg.split('--')[-1]] = dag_arg_checker(argv[i+1])  
-    
+
     # Where to save everything
     prf_dir = opj(derivatives_dir, prf_out)    
     output_dir = opj(prf_dir, sub, ses)
@@ -124,12 +127,13 @@ Example:
             last_batch = False
     else:
         batch_str = ''
-    out = f"{sub}_{dag_hyphen_parse('model', model)}_{dag_hyphen_parse('roi', roi_fit)}_{task}-fits{batch_str}"    
-    out_no_batch_str = f"{sub}_{dag_hyphen_parse('model', model)}_{dag_hyphen_parse('roi', roi_fit)}_{task}-fits"    
+    hrf_str = dag_hyphen_parse('hrf', hrf_version)
+    out = f"{sub}_{dag_hyphen_parse('model', model)}_{dag_hyphen_parse('roi', roi_fit)}_{hrf_str}_{task}-fits{batch_str}"    
+    out_no_batch_str = f"{sub}_{dag_hyphen_parse('model', model)}_{dag_hyphen_parse('roi', roi_fit)}_{hrf_str}_{task}-fits"    
 
     # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< LOAD SETTINGS
     # load basic settings from the yml file
-    prf_settings = load_yml_settings(hrf_version)
+    prf_settings = load_yml_settings(hrf_version, sub=sub)
     dm_task = task +''
     dm_task = dm_task.split('_run')[0] # 
     dm_task = dm_task.split('_fold')[0] 
@@ -156,7 +160,9 @@ Example:
             print(f'Overwriting {key} with {ow_prf_settings[key]}')
 
     # ****************************************************
-
+    print(f'********* HRF **************')
+    print(prf_settings['hrf']['pars'])    
+    
     # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< LOAD TIME SERIES & MASK THE ROI   
     # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< LOAD TIME SERIES
     ts_data = load_data_tc(
@@ -211,12 +217,12 @@ Example:
         model=gg,                       # model (see above)
         n_jobs=prf_settings['n_jobs'], # number of jobs to use in parallelization 
         )
-    iter_gauss = dag_find_file_in_folder([sub, 'gauss', roi_fit, 'iter', task, f'constr-{constraints}', '.pkl'], output_dir, exclude='batch', return_msg=None)        
+    iter_gauss = dag_find_file_in_folder([sub, 'gauss', roi_fit, 'iter', task, f'constr-{constraints}', hrf_str, '.pkl'], output_dir, exclude='batch', return_msg=None)        
     if iter_gauss is None:
         # -> gauss is faster than the extended, so we may have the 'all' fit already...
         # -> check for this and use it if appropriate (make sure the correct constraints are applied)
         # iter_gauss = dag_find_file_in_folder([sub, 'gauss', 'all', 'iter', task, constraints], output_dir, return_msg=None)        
-        iter_gauss = dag_find_file_in_folder([sub, 'gauss', 'all', 'iter', task, f'constr-{constraints}', '.pkl'], output_dir, exclude='batch', return_msg=None)        
+        iter_gauss = dag_find_file_in_folder([sub, 'gauss', 'all', 'iter', task, hrf_str, f'constr-{constraints}', '.pkl'], output_dir, exclude='batch', return_msg=None)        
         print('**** USING ALL *****')
     print(iter_gauss)
     iter_gauss_params = load_prf_pickle_pars(iter_gauss)
@@ -336,7 +342,7 @@ Example:
 
     
     # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< IF NOT DONE - DO GRID FIT
-    grid_ext = dag_find_file_in_folder([sub, model, task, roi_fit, 'grid'], output_dir, return_msg=None, exclude=['batch'])            
+    grid_ext = dag_find_file_in_folder([sub, model, task, roi_fit, hrf_str, 'grid'], output_dir, return_msg=None, exclude=['batch'])            
     if grid_ext is None:
         print('Not done grid fit - doing that now')
         g_start_time = datetime.now().strftime('%Y-%m-%d_%H-%M')
@@ -394,7 +400,7 @@ Example:
 
     
     # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< DO ITERATIVE FIT
-    iter_check = dag_find_file_in_folder([out, model, 'iter', f'constr-{constraints}'], output_dir, return_msg=None)
+    iter_check = dag_find_file_in_folder([out, model, 'iter', f'constr-{constraints}', hrf_str], output_dir, return_msg=None)
     if (iter_check is not None) and (not overwrite):
         print(f'Already done {iter_check}')
         sys.exit()        

@@ -123,7 +123,8 @@ def main(argv):
                 elif model=='norm':
                     script_path = opj(os.path.dirname(__file__),'HAB_N_fit.py')        
                 elif model=='HRF':
-                    script_path = opj(os.path.dirname(__file__),'HAB_G_fit_HRF.py')        
+                    script_path = opj(os.path.dirname(__file__),'HAB_G_fit_HRF.py')
+                    model = 'gauss'        
                 batch_str = f'_batch-{batch_id:03}-of-{batch_num:03}'
                 iter_check = dag_find_file_in_folder(
                     [task, roi_fit, model, 'iter', f'constr-{constraint}', f'hrf-{hrf_version}', batch_str, '.pkl'], 

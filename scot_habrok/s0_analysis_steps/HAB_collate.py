@@ -94,7 +94,8 @@ Example:
     prf_dir = opj(derivatives_dir,  prf_out)    
     output_dir = opj(prf_dir, sub, ses)
     if not os.path.exists(output_dir):
-        os.makedirs(output_dir)    
+        os.makedirs(output_dir)
+    num_vx = len(load_roi(sub, roi='all'))
     out = f"{sub}_{dag_hyphen_parse('model', model)}_" + \
         f"{dag_hyphen_parse('roi', roi_fit)}_" + \
         f"{dag_hyphen_parse('hrf', hrf_version)}_" + \
@@ -113,7 +114,7 @@ Example:
     for ib in np.arange(1,batch_num+1):
         # Find the pickle file
         batch_pkl_file = dag_find_file_in_folder(
-            [sub, model, task, roi_fit, 'iter', f'constr-{constraints}', '.pkl', f'batch-{ib:03}-of-{batch_num:03}', dag_hyphen_parse('hrf', hrf_version)],  
+            [sub, model, hrf_version, task, roi_fit, 'iter', f'constr-{constraints}', '.pkl', f'batch-{ib:03}-of-{batch_num:03}', ], # dag_hyphen_parse('hrf', hrf_version)],  
             output_dir, 
             return_msg=None, 
             )
@@ -129,15 +130,21 @@ Example:
         batch_pars.append(
             load_prf_pickle_pars(batch_pkl_file)
         )
-        
-        # Also load the index            
-        batch_idx_file = dag_find_file_in_folder(
-            [sub, model, task, roi_fit, 'batch-idx.npy', f'batch-{ib:03}-of-{batch_num:03}', dag_hyphen_parse('hrf', hrf_version)],  
-            output_dir, 
-            return_msg=None, 
-            )
-        batch_idx.append(np.load(batch_idx_file))
-
+        try:
+            # Also load the index            
+            batch_idx_file = dag_find_file_in_folder(
+                [sub, model, task, roi_fit, 'batch-idx.npy', f'batch-{ib:03}-of-{batch_num:03}', ], # dag_hyphen_parse('hrf', hrf_version)],  
+                output_dir, 
+                return_msg=None, 
+                )
+            batch_idx.append(np.load(batch_idx_file))
+        except:
+            batch_idx.append(dag_return_batch_idx(
+                batch_num = batch_num,
+                batch_id = ib-1, 
+                num_idx = num_vx,
+                split_method = 'distributed', 
+            ))
     # Find the total number of voxels and params
     total_n_params = batch_pars[0].shape[-1]
     total_n_vox = np.concatenate(batch_idx).max() + 1 # (index)

@@ -118,8 +118,9 @@ Example:
     
     # TO FIND THE MATCHING FIT FILEs
     out_hrf_fit_filt = [
-        sub, dag_hyphen_parse('model', 'HRF'), task, 
+        sub, 'COLLATED', task, 
         dag_hyphen_parse('roi', roi_fit),
+        'hrf-optimized',
         'iter', dag_hyphen_parse('constr', constraints),
         '.pkl',
     ]
@@ -130,23 +131,23 @@ Example:
         return_msg=None)
     print(out_hrf_fit)
 
-
     # TO FIND THE MATCHING NOT FIT HRF FILE
     out_NOT_hrf_fit_filt = [
         sub, dag_hyphen_parse('model', model), task, 
+        'roi-all',
         'iter', dag_hyphen_parse('constr', constraints),    
         '.pkl',   
     ]    
     out_NOT_hrf_fit = dag_find_file_in_folder(
         out_NOT_hrf_fit_filt, 
         output_dir, 
-        exclude=['HRF-refit', 'batch'],
+        exclude=['hrf-optimal', 'batch'],
         return_msg=None)
     print(out_NOT_hrf_fit)
 
     # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< LOAD SETTINGS
     # load basic settings from the yml file
-    prf_settings = load_yml_settings(hrf_version)
+    prf_settings = load_yml_settings('new')
     dm_task = task +''
     dm_task = dm_task.split('_run')[0] # 
     dm_task = dm_task.split('_fold')[0] 

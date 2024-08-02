@@ -79,7 +79,7 @@ Example:
         elif '--batch_num' == arg:
             batch_num = int(argv[i+1])            
         elif arg in ('--hrf_version', ):
-            hrf_version = f'hrf-{argv[i+1]}'
+            hrf_version = argv[i+1]
         elif arg in ("-r", "--roi_fit"):
             roi_fit = argv[i+1]
         elif arg in ("--tc", "--bgfs", "--nelder"):
@@ -99,7 +99,8 @@ Example:
     out = f"{sub}_{dag_hyphen_parse('model', model)}_" + \
         f"{dag_hyphen_parse('roi', roi_fit)}_" + \
         f"{dag_hyphen_parse('hrf', hrf_version)}_" + \
-        f"{dag_hyphen_parse('task', task)}-fits_COLLATED"    
+        f"{dag_hyphen_parse('task', task)}-fits_COLLATED"
+    print(out)    
     output_file = opj(output_dir, f'{out}_stage-iter_constr-{constraints}_desc-prf_params.pkl')
     if os.path.exists(output_file):
         print(f'Already exists {output_file.split("/")[-1]}')
@@ -118,6 +119,8 @@ Example:
             output_dir, 
             return_msg=None, 
             )
+        print([sub, model, hrf_version, task, roi_fit, 'iter', f'constr-{constraints}', '.pkl', f'batch-{ib:03}-of-{batch_num:03}', ])
+        print(output_dir)
         if batch_pkl_file is None:
             print(f'MISSING batch {ib} of {batch_num}')
             return        

@@ -12,10 +12,10 @@ opj = os.path.join
 # SLURM ARGUMENTS (partition & profile included in the task)
 sl_nodes = '1'
 sl_task_per_node = '30'
-sl_time = '5:00:00'
+sl_time = '1:00:00'
 
 # Where is it going? What HRF version is being used
-prf_out = 'prf_NM_HRFfit_BL'
+prf_out = 'prf_HRFfit_NM_dt5'
 hrf_version = 'new'
 n_jobs = 64
 batch_num = 20

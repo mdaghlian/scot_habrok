@@ -11,10 +11,10 @@ opj = os.path.join
 # SLURM ARGUMENTS (partition & profile included in the task)
 sl_nodes = '1'
 sl_task_per_node = '30'
-sl_time = '5:00:00'
+sl_time = '0:15:00'
 
 # Where is it going? What HRF version is being used
-prf_out = 'prf_NM_HRFfit_BL'
+prf_out = 'prf_HRFfit_NM_dt5'
 hrf_version = 'optimal'
 n_jobs = 64
 batch_num = 20
@@ -37,7 +37,7 @@ for sub in sub_list:
     if not os.path.exists(this_log_dir):
         os.makedirs(this_log_dir)
     for task in task_list:    
-        prf_job_name = f'{sub}-gauss-{task}-grid'
+        prf_job_name = f'{sub}-gauss-{task}-{hrf_version}-grid'
         done_check = dag_find_file_in_folder(
             [model, roi_fit, task, 'grid', '.pkl', f'hrf-{hrf_version}'],
             path=this_dir,

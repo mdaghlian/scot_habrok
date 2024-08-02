@@ -60,12 +60,12 @@ Example:
     verbose = True
     cut_vols = 5
     n_timepts = 225 - cut_vols
-    hrf_version = 'old'
+    hrf_version = 'optimized'
     
     # Specify
     sub = None
     task = None
-    roi_fit = 'v1custom'
+    roi_fit = 'custom'
     constraints = None
     n_jobs = None
     prf_out = 'prf'    
@@ -74,7 +74,6 @@ Example:
     ow_prf_settings = {} # overwrite prf settings from the yml file with these settings
     batch_id = None
     batch_num = None
-    grid_only = False
     for i,arg in enumerate(argv):
         if arg in ('-s', '--sub'):
             sub = dag_hyphen_parse('sub', argv[i+1])
@@ -96,8 +95,6 @@ Example:
             constraints = arg.split('--')[-1]
         elif arg in ("--rsq_threshold",):
             rsq_threshold = float(argv[i+1])                        
-        elif arg in ("--grid_only"):
-            grid_only = True
         elif arg in ("--hrf_version",):
             hrf_version = argv[i+1]
         elif arg in ("--ow", "--overwrite"):
@@ -114,19 +111,14 @@ Example:
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
     
-    roi_idx = load_roi(sub, roi_fit)
-
+    roi_idx = load_roi(sub, roi_fit, combine_matches=True)
+    print(f'For ROI {roi_fit} % of vx being fit = {roi_idx.mean()*100:.3f}')
     if batch_num is not None:        
         batch_str = f'_batch-{batch_id:03}-of-{batch_num:03}'
-        if batch_id==batch_num:
-            last_batch = True
-        else:
-            last_batch = False
     else:
         batch_str = ''
-        last_batch = True
 
-    out = f"{sub}_{dag_hyphen_parse('model', model)}_{dag_hyphen_parse('roi', roi_fit)}_{task}-fits{batch_str}_HRF-refit"    
+    out = f"{sub}_{dag_hyphen_parse('model', model)}_{dag_hyphen_parse('roi', roi_fit)}_{dag_hyphen_parse('hrf', hrf_version)}_{task}-fits{batch_str}_HRF-refit"    
     out_no_batch_str = f"{sub}_{dag_hyphen_parse('model', model)}_{dag_hyphen_parse('roi', roi_fit)}_{task}-fits_HRF-refit"    
     
     # TO FIND THE MATCHING NOT FIT HRF FILE
@@ -137,7 +129,7 @@ Example:
 
     # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< LOAD SETTINGS
     # load basic settings from the yml file
-    prf_settings = load_yml_settings(hrf_version)
+    prf_settings = load_yml_settings(hrf_version=hrf_version, sub=sub)
     dm_task = task +''
     dm_task = dm_task.split('_run')[0] # 
     dm_task = dm_task.split('_fold')[0] 
@@ -179,9 +171,13 @@ Example:
             ts_data, batch_num=batch_num, batch_id=batch_id-1, # NOTE MINUS 1
             split_method='distributed',
         )
+        batch_roi_idx = roi_idx[ts_idx]
         print(f'ts shape = {ts_data.shape}')
         print(ts_idx)
-        batch_roi_idx = roi_idx[ts_idx]
+        print(batch_roi_idx)
+        print(f'Running {batch_str}')
+        print(f'In this batch there are {len(batch_roi_idx)} vx')
+        print(f'Of wich {batch_roi_idx.sum()} are included in roi {roi_fit}')
         # save  
         batch_idx_file = opj(output_dir, f'{out}_batch-idx.npy')
         np.save(batch_idx_file, ts_idx)
@@ -192,6 +188,7 @@ Example:
     fitting_num_vx = batch_roi_idx.sum()
     ts_data = ts_data[batch_roi_idx]
     print(f'Fitting {roi_fit} batch {batch_id} out of {batch_num} vx in batch={total_num_vx}, vx fitting = {fitting_num_vx} ')
+    print(ts_data.shape)
     print(f'RSQ THRESHOLD {prf_settings["rsq_threshold"]}')
 
     # Look for the parameters

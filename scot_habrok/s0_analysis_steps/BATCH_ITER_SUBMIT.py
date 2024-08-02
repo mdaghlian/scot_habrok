@@ -36,7 +36,8 @@ def main(argv):
     model = None
     constraint = None
     constraint_flag = ''
-    hrf_version = 'old'
+    hrf_version = 'new'
+    hrf_fitting = False 
     batch_num = None
     n_jobs = None
     job_start = 0
@@ -73,7 +74,9 @@ def main(argv):
         elif '--roi_fit' in arg:
             roi_fit = argv[i+1]
         elif '--hrf_version' in arg:
-            hrf_version = argv[i+1]            
+            hrf_version = argv[i+1]   
+        elif '--hrf_fitting'==arg:
+            hrf_fitting = True
         elif arg in ("--ow", "--overwrite"):
             ow = True            
             ow_flag = '--ow'
@@ -102,7 +105,10 @@ def main(argv):
             os.makedirs(l_dir)
         for task in task_list:        
             for batch_id in np.arange(1,batch_num+1):
-                prf_job_name = f'{sub}-{model}-{task}-iter-{batch_id:03}-of-{batch_num:03}'
+                hrf_fitting_str = ''
+                if hrf_fitting:
+                    hrf_fitting_str = '_HRFFIT_'
+                prf_job_name = f'{sub}-{model}-{task}{hrf_version}{hrf_fitting_str}-iter-{batch_id:03}-of-{batch_num:03}'
                 output_file = os.path.abspath(opj(l_dir, f'{prf_job_name}_OUT.txt'))
                 error_file = os.path.abspath(opj(l_dir, f'{prf_job_name}_ERR.txt'))
                 slurm_args = f'--output {output_file} --error {error_file} --job-name {prf_job_name}' + \
@@ -120,9 +126,10 @@ def main(argv):
                 slurm_path = opj(os.path.dirname(__file__),'HAB_SLURM_GENERIC')        
                 if model=='gauss':
                     script_path = opj(os.path.dirname(__file__),'HAB_G_fit.py')        
-                elif model=='norm':
+                elif model in ('norm', 'css', 'dog'):
                     script_path = opj(os.path.dirname(__file__),'HAB_N_fit.py')        
-                elif model=='HRF':
+                
+                if hrf_fitting:
                     script_path = opj(os.path.dirname(__file__),'HAB_G_fit_HRF.py')
                     model = 'gauss'        
                 batch_str = f'_batch-{batch_id:03}-of-{batch_num:03}'
@@ -145,6 +152,7 @@ def main(argv):
                     f"{ow_flag} "
                 # print(f'python {script_path} {script_args}')
                 # Run locally 
+                # print(f'python {script_path} {script_args}')
                 # os.system(f'python {script_path} {script_args}')
 
                 # Submit!

@@ -133,7 +133,7 @@ Example:
 
     # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< LOAD SETTINGS
     # load basic settings from the yml file
-    prf_settings = load_yml_settings(hrf_version, sub=sub)
+    prf_settings = load_yml_settings(hrf_version=hrf_version, sub=sub)
     dm_task = task +''
     dm_task = dm_task.split('_run')[0] # 
     dm_task = dm_task.split('_fold')[0] 
@@ -234,6 +234,7 @@ Example:
 
     # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< CREATE & RUN EXTENDED MODEL
     if model=='norm': # ******************************** NORM
+        print(f'********** Running NORM model **********')
         gg_ext = Norm_Iso2DGaussianModel(
             stimulus=prf_stim,                                  
             hrf=prf_settings['hrf']['pars'],                    
@@ -264,6 +265,7 @@ Example:
             ] 
         
     elif model=='dog': # ******************************** DOG
+        print(f'********** Running DOG model **********')
         gg_ext = DoG_Iso2DGaussianModel(
             stimulus=prf_stim,                                  
             hrf=prf_settings['hrf']['pars'],                    
@@ -290,6 +292,7 @@ Example:
             ]
 
     elif model=='css': # ******************************** CSS
+        print(f'********** Running CSS model **********')
         gg_ext = CSS_Iso2DGaussianModel(
             stimulus=prf_stim,                                  
             hrf=prf_settings['hrf']['pars'],                    

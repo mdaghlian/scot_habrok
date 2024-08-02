@@ -7,12 +7,12 @@ import os
 import sys
 from scot_habrok.load_saved_info import *
 opj = os.path.join
-prf_out = 'prf_NM_HRFfit_BL'
+prf_out = 'prf_HRFfit_NM_dt5'
 prf_dir = opj(derivatives_dir, prf_out)
 
-sub_list = ['sub-07',] # 'sub-02', 'sub-03', 'sub-04', 'sub-05', 'sub-06', 'sub-07']
+sub_list = ['sub-01', 'sub-02', 'sub-03', 'sub-04', 'sub-05', 'sub-06', 'sub-07']
 task_list = ['AS0','AS1', 'AS2']
-model_list = ['gauss',] #  'norm'] # ['gauss', 'norm']
+model_list = ['norm',] #  'norm'] # ['gauss', 'norm']
 hrf_version = 'optimal'
 batch_num = 20
 roi_fit = 'all'

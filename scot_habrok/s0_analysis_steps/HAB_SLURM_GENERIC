@@ -14,7 +14,7 @@ while [[ "$#" -gt 0 ]]; do
 done
 
 # THEN activate your specific environment load modules etc
-bash $HOME/programs/hab_cli/hab_activate_dag_prfpy
+source $HOME/programs/hab_cli/hab_activate dag_prfpy_v2
 
 # Check which Python is being used
 echo "Using Python executable: $(which python)"

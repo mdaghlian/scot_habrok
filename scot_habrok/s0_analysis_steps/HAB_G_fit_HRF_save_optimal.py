@@ -130,7 +130,8 @@ Example:
         exclude='batch',
         return_msg=None)
     print(out_hrf_fit)
-
+    print(out_hrf_fit_filt)
+    # bloop
     # TO FIND THE MATCHING NOT FIT HRF FILE
     out_NOT_hrf_fit_filt = [
         sub, dag_hyphen_parse('model', model), task, 
@@ -147,7 +148,7 @@ Example:
 
     # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< LOAD SETTINGS
     # load basic settings from the yml file
-    prf_settings = load_yml_settings('new')
+    prf_settings = load_yml_settings(hrf_version=hrf_version, sub=sub)
     dm_task = task +''
     dm_task = dm_task.split('_run')[0] # 
     dm_task = dm_task.split('_fold')[0] 
@@ -185,7 +186,7 @@ Example:
         n_timepts=n_timepts
         )[task]
     
-    roi_idx = load_roi(sub, roi_fit)
+    roi_idx = load_roi(sub, roi_fit, combine_matches=True)
     total_num_vx = ts_data.shape[0]
     vx_in_roi = roi_idx.sum()
     print(f'Num vs in total = {total_num_vx}')

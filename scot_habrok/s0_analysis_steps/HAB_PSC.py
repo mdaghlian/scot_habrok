@@ -50,7 +50,7 @@ def main(argv):
         elif '--prf_out' in arg:
             prf_out = argv[i+1]
         elif '--detrend' in arg:
-            detrend = int(argv[i+1])        
+            detrend = argv[i+1]
         elif arg in ('-h', '--help'):
             print(main.__doc__)
             sys.exit(2)
@@ -139,7 +139,7 @@ def main(argv):
     print(np.mean(lr_data_psc, axis=1))
     print(np.mean(mean_lr_data, axis=1).shape)
 
-    lr_out_psc_file = opj(output_dir, f'{out}_hemi-LR_detrend-{int(detrend)}_desc-avg_bold.npy')
+    lr_out_psc_file = opj(output_dir, f'{out}_hemi-LR_detrend-{detrend}_desc-avg_bold.npy')
     np.save(lr_out_psc_file, lr_data_psc)
     print(f'Saved {lr_out_psc_file}')        
 

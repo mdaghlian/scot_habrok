@@ -7,13 +7,13 @@ import os
 import sys
 from scot_habrok.load_saved_info import *
 opj = os.path.join
-prf_out = 'prf_HRFfit_NM_dt5'
+prf_out = 'prf_ascot'
 prf_dir = opj(derivatives_dir, prf_out)
 
 sub_list = ['sub-01','sub-02', 'sub-03', 'sub-04', 'sub-05', 'sub-06', 'sub-07']
 task_list = ['AS0','AS1', 'AS2']
 ses = 'ses-1'
-detrend = 5
+detrend = 'linear'
 # ************ LOOP THROUGH SUBJECTS ***************
 for sub in sub_list:
     this_dir = opj(prf_dir, sub, ses)

@@ -12,7 +12,7 @@ opj = os.path.join
 # SLURM ARGUMENTS (partition & profile included in the task)
 sl_nodes = '1'
 sl_task_per_node = '30'
-sl_time = '5:00:00'
+sl_time = '2:00:00'
 
 # Where is it going? What HRF version is being used
 prf_out = 'prf_HRFfit_NM_dt5'
@@ -22,7 +22,7 @@ batch_num = 20
 roi_fit = 'all'
 constraint = '--nelder'
 ses = 'ses-1'
-model = 'norm'
+model = 'dog'
 ow = False
 ow_flag = ''
 

@@ -44,10 +44,10 @@ dog:
   surround_amplitude_bound: [0,1000]
 
 hrf:
-  pars: ["beep"]
+  pars: [1, 4.6, 0]
   deriv_bound: [0,10]
   disp_bound: [0,0]
 
-grid_nr: 20 # 20 OG 
+grid_nr: 5 # 
 rsq_threshold: 0.05
 TR: 1.5

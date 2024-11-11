@@ -60,7 +60,6 @@ Example:
     verbose = True
     cut_vols = 5
     n_timepts = 225 - cut_vols
-    hrf_version = 'old'
     
     # Specify
     sub = None
@@ -123,13 +122,13 @@ Example:
             last_batch = False
     else:
         batch_str = ''
-    hrf_str = dag_hyphen_parse('hrf', hrf_version)
+    hrf_str = 'hrf4pt6'
     out = f"{sub}_{dag_hyphen_parse('model', model)}_{dag_hyphen_parse('roi', roi_fit)}_{hrf_str}_{task}-fits{batch_str}"    
     out_no_batch_str = f"{sub}_{dag_hyphen_parse('model', model)}_{dag_hyphen_parse('roi', roi_fit)}_{hrf_str}_{task}-fits"    
 
     # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< LOAD SETTINGS
     # load basic settings from the yml file
-    prf_settings = load_yml_settings(hrf_version=hrf_version, sub=sub)
+    prf_settings = load_yml_settings()
     dm_task = task +''
     dm_task = dm_task.split('_run')[0] # 
     dm_task = dm_task.split('_fold')[0] 

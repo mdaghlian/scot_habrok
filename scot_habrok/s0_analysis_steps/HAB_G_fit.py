@@ -97,8 +97,6 @@ Example:
             rsq_threshold = float(argv[i+1])                        
         elif arg in ("--grid_only"):
             grid_only = True
-        elif arg in ("--hrf_version",):
-            hrf_version = argv[i+1]
         elif arg in ("--ow", "--overwrite"):
             overwrite = True
         elif arg in ('-h', '--help'):

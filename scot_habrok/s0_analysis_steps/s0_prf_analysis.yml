@@ -48,6 +48,6 @@ hrf:
   deriv_bound: [0,10]
   disp_bound: [0,0]
 
-grid_nr: 5 # 
+grid_nr: 20 # 
 rsq_threshold: 0.05
 TR: 1.5

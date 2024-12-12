@@ -10,19 +10,22 @@ opj = os.path.join
 
 '''
 Run grid gaussian fit using default HRF [1, 4.6, 0]
+
+Reserved walltime              : 05:00:00
+Used walltime                  : 00:08:26
 '''
 
 # SLURM ARGUMENTS (partition & profile included in the task)
 sl_nodes = '1'
 sl_task_per_node = '30'
-sl_time = '5:00:00'
+sl_time = '0:15:00'
 
 # Where is it going? What HRF version is being used
 prf_out = 'prf_ascot'
 n_jobs = 64
 batch_num = 20
 roi_fit = 'all'
-constraint = '--nelder'
+constraint = '--tc'
 ses = 'ses-1'
 model = 'gauss'
 ow = False
@@ -42,7 +45,7 @@ for sub in sub_list:
     for task in task_list:    
         prf_job_name = f'{sub}-gauss-{task}-grid'
         done_check = dag_find_file_in_folder(
-            [model, roi_fit, task, 'grid', '.pkl', f'hrf-{hrf_version}'],
+            [model, roi_fit, task, 'grid', '.pkl', f'hrf4pt6'],
             path=this_dir,
             return_msg=None,
         )
@@ -63,6 +66,6 @@ for sub in sub_list:
         script_args = f"--sub {sub} --task {task} --roi_fit {roi_fit} --n_jobs {n_jobs} " + \
             f"{constraint} --prf_out {prf_out} --grid_only {ow_flag}"
         
-        # os.system(f'{job} {slurm_args} {slurm_path} --script_path {script_path} --args "{script_args}"')
-        os.system(f'python {script_path} {script_args}')
-        sys.exit()
+        os.system(f'{job} {slurm_args} {slurm_path} --script_path {script_path} --args "{script_args}"')
+        # os.system(f'python {script_path} {script_args}')
+        # sys.exit()

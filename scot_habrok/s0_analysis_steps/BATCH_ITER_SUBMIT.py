@@ -36,7 +36,6 @@ def main(argv):
     model = None
     constraint = None
     constraint_flag = ''
-    hrf_version = 'new'
     hrf_fitting = False 
     batch_num = None
     n_jobs = None
@@ -72,11 +71,7 @@ def main(argv):
         elif '--ses' in arg:
             ses = dag_hyphen_parse('ses', argv[i+1])
         elif '--roi_fit' in arg:
-            roi_fit = argv[i+1]
-        elif '--hrf_version' in arg:
-            hrf_version = argv[i+1]   
-        elif '--hrf_fitting'==arg:
-            hrf_fitting = True
+            roi_fit = argv[i+1]  
         elif arg in ("--ow", "--overwrite"):
             ow = True            
             ow_flag = '--ow'
@@ -105,10 +100,8 @@ def main(argv):
             os.makedirs(l_dir)
         for task in task_list:        
             for batch_id in np.arange(1,batch_num+1):
-                hrf_fitting_str = ''
-                if hrf_fitting:
-                    hrf_fitting_str = '_HRFFIT_'
-                prf_job_name = f'{sub}-{model}-{task}{hrf_version}{hrf_fitting_str}-iter-{batch_id:03}-of-{batch_num:03}'
+                hrf_str = 'hrf4pt6'
+                prf_job_name = f'{sub}-{model}-{task}{hrf_str}-iter-{batch_id:03}-of-{batch_num:03}'
                 output_file = os.path.abspath(opj(l_dir, f'{prf_job_name}_OUT.txt'))
                 error_file = os.path.abspath(opj(l_dir, f'{prf_job_name}_ERR.txt'))
                 slurm_args = f'--output {output_file} --error {error_file} --job-name {prf_job_name}' + \
@@ -129,12 +122,9 @@ def main(argv):
                 elif model in ('norm', 'css', 'dog'):
                     script_path = opj(os.path.dirname(__file__),'HAB_N_fit.py')        
                 
-                if hrf_fitting:
-                    script_path = opj(os.path.dirname(__file__),'HAB_G_fit_HRF.py')
-                    model = 'gauss'        
                 batch_str = f'_batch-{batch_id:03}-of-{batch_num:03}'
                 iter_check = dag_find_file_in_folder(
-                    [task, roi_fit, model, 'iter', f'constr-{constraint}', f'hrf-{hrf_version}', batch_str, '.pkl'], 
+                    [task, roi_fit, model, 'iter', f'constr-{constraint}', f'{hrf_str}', batch_str, '.pkl'], 
                     p_dir, 
                     return_msg=None)
                 # continue
@@ -148,7 +138,7 @@ def main(argv):
                 # Arguments to pass to fitters
                 script_args = f"--sub {sub} --task {task} --model {model} " +\
                     f"--roi_fit {roi_fit} --n_jobs {n_jobs} {constraint_flag} --prf_out {prf_out} " +\
-                    f"--batch_id {batch_id} --batch_num {batch_num} --hrf_version {hrf_version} " +\
+                    f"--batch_id {batch_id} --batch_num {batch_num}  " +\
                     f"{ow_flag} "
                 # print(f'python {script_path} {script_args}')
                 # Run locally 

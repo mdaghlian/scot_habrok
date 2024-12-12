@@ -11,17 +11,16 @@ opj = os.path.join
 # SLURM ARGUMENTS (partition & profile included in the task)
 sl_nodes = '1'
 sl_task_per_node = '30'
-sl_time = '0:15:00'
+sl_time = '1:00:00'
 
 # Where is it going? What HRF version is being used
-prf_out = 'prf_HRFfit_NM_dt5'
-hrf_version = 'optimal'
+prf_out = 'prf_ascot'
 n_jobs = 64
 batch_num = 20
 roi_fit = 'all'
-constraint = '--nelder'
+constraint = '--tc'
 ses = 'ses-1'
-model = 'gauss'
+model = 'norm'
 ow = False
 ow_flag = ''
 
@@ -37,16 +36,17 @@ for sub in sub_list:
     if not os.path.exists(this_log_dir):
         os.makedirs(this_log_dir)
     for task in task_list:    
-        prf_job_name = f'{sub}-gauss-{task}-{hrf_version}-grid'
+        prf_job_name = f'{sub}-{model}-{task}-grid'
         done_check = dag_find_file_in_folder(
-            [model, roi_fit, task, 'grid', '.pkl', f'hrf-{hrf_version}'],
+            [model, roi_fit, task, 'grid', '.pkl', f'hrf4pt6'],
             path=this_dir,
             return_msg=None,
         )
         if (done_check is not None) & (not ow):
             print(f'Already done {done_check}')
             continue
-
+        # else:
+        #     print(f'{sub} {task} helooooooooo')
         output_file = os.path.abspath(opj(this_log_dir, f'{prf_job_name}_OUT.txt'))
         error_file = os.path.abspath(opj(this_log_dir, f'{prf_job_name}_ERR.txt'))
         slurm_args = f'--output {output_file} --error {error_file} --job-name {prf_job_name} ' + \
@@ -54,10 +54,10 @@ for sub in sub_list:
         
         job="sbatch"
         slurm_path = opj(os.path.dirname(__file__),'HAB_SLURM_GENERIC')        
-        script_path = opj(os.path.dirname(__file__),'HAB_G_fit.py')        
+        script_path = opj(os.path.dirname(__file__),'HAB_N_fit.py')        
         # Arguments to pass to HAB_G_fit.py
-        script_args = f"--sub {sub} --task {task} --roi_fit {roi_fit} --n_jobs {n_jobs} " + \
-            f"{constraint} --prf_out {prf_out} --grid_only --hrf_version {hrf_version} {ow_flag}"
+        script_args = f"--sub {sub} --task {task} --model {model} --roi_fit {roi_fit} --n_jobs {n_jobs} " + \
+            f"{constraint} --prf_out {prf_out} --grid_only {ow_flag}"
         
         os.system(f'{job} {slurm_args} {slurm_path} --script_path {script_path} --args "{script_args}"')
         # os.system(f'python {script_path} {script_args}')

@@ -91,8 +91,6 @@ Example:
             batch_id = int(argv[i+1])
         elif arg in ('--batch_num',):
             batch_num = int(argv[i+1])            
-        elif arg in ('--hrf_version',):
-            hrf_version = argv[i+1]
         elif arg in ("-r", "--roi_fit"):
             roi_fit = argv[i+1]
         elif arg in ("--n_jobs",):
